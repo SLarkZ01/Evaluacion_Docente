@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RolSeeder extends Seeder
 {
@@ -12,8 +13,7 @@ class RolSeeder extends Seeder
      */
     public function run(): void
     {
-        // Insertar los roles en la tabla rol
-        \DB::table('rol')->insert([
+        DB::table('rol')->insert([
             [
                 'id_rol' => 1,
                 'nombre' => 'Decano',
