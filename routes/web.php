@@ -51,14 +51,7 @@ Route::get("/docente/PDmejorado", [DocenteController::class, 'pde'])->name('doce
 //resultados
 Route::get("/docente/resultados", [DocenteController::class, 'result'])->name('docente.result');
 
-//Login
-Route::post('/login', [loginController::class, 'validation'])->name('login.process');
-
-
-
 Route::get("/decano", [HomeController::class, 'index'])->name('user.index');
-
-Route::get('/', [loginController::class, 'Login'])->name('user.login');
 
 // Rutas para actas de compromiso
 Route::prefix('decano/acta-compromiso')->name('decano.')->group(function () {

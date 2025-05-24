@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'id_rol',
     ];
 
     /**
@@ -40,5 +41,14 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'id_rol' => 'integer',
     ];
+    
+    /**
+     * Get the role that owns the user.
+     */
+    public function rol()
+    {
+        return $this->belongsTo(Rol::class, 'id_rol', 'id_rol');
+    }
 }

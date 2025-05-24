@@ -48,6 +48,10 @@ class LoginRequest extends FormRequest
                 'email' => trans('auth.failed'),
             ]);
         }
+        
+        // Almacenar información adicional en la sesión
+        $user = Auth::user();
+        session(['rol_usuario' => $user->id_rol]);
 
         RateLimiter::clear($this->throttleKey());
     }

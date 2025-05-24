@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->integer('id_rol')->default(2); // 1-Decano, 2-Docente, 3-Administrador, por defecto es Docente
             $table->rememberToken();
             $table->timestamps();
         });
