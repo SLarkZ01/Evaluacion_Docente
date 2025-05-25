@@ -18,7 +18,7 @@
     <span class="sidebar-mini-icon">
         <i class="fa fa-ellipsis-h"></i>
     </span>
-    <h4 class="text-section">Gestión Docente</h4>
+    <h4 class="text-section">Herramientas de Gestión</h4>
 </li>
 
 {{-- Menú específico para Administrador --}}
@@ -96,7 +96,10 @@
 </li>
 
 <li class="nav-item">
-    <a href="{{ route('welcome') }}">
+    <form method="POST" action="{{ route('logout') }}" id="logout-form" class="d-none">
+        @csrf
+    </form>
+    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
         <i class="fas fa-sign-out-alt"></i>
         <p>Cerrar Sesión</p>
     </a>

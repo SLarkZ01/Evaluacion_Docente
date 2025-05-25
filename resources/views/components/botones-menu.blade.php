@@ -48,7 +48,10 @@
         </a>
     </li>
     <li class="nav-item">
-        <a href="{{ route('user.login') }}">
+        <form method="POST" action="{{ route('logout') }}" id="logout-form-botones" class="d-none">
+            @csrf
+        </form>
+        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form-botones').submit();">
             <i class="fas fa-sign-out-alt"></i>
             <p>Cerrar Sesión</p>
         </a>
