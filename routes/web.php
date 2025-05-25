@@ -16,15 +16,16 @@ use App\Http\Controllers\ImportarEvaluacionController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Configuración de Rutas Web
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
+| Este archivo define todas las rutas web de la aplicación de Evaluación Docente.
+| Las rutas están organizadas por roles de usuario (público, docente, decano, admin)
+| y agrupadas por funcionalidad para una mejor organización y mantenimiento.
 |
 */
 
+// Rutas públicas - Accesibles sin autenticación
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
@@ -33,6 +34,18 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Rutas de importación de Excel (Todo el mundo puede acceder)
+Route::prefix('importar')->group(function () {
+    Route::get('/', function () {
+        return view('importar');
+    });
+    Route::get('/cargar-excel', function () {
+        return view('cargar-excel');
+    });
+    Route::post('/', [ExcelImportController::class, 'importar']);
+});
+
+// Rutas de gestión de perfil - Accesibles para todos los usuarios autenticados
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -41,180 +54,88 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 
-
-//principio docente
-Route::get("/docente", [DocenteController::class, 'p_docente'])->name('docente.p_docente');
-//configuracion docente
-Route::get("/docente/configuracion", [DocenteController::class, 'confi'])->name('docente.confi');
-//panel docente mejorado
-Route::get("/docente/PDmejorado", [DocenteController::class, 'pde'])->name('docente.pde');
-//resultados
-Route::get("/docente/resultados", [DocenteController::class, 'result'])->name('docente.result');
-
-
-// Rutas principal del decano
-Route::get("/decano", [HomeController::class, 'index'])->name('user.index');
-
-// Rutas para actas de compromiso del panel decano
-Route::prefix('decano/acta-compromiso')->name('decano.')->group(function () {
-    Route::get('/', [DecanoCordinadorController::class, 'acta_compromiso'])->name('acta_compromiso');
-
-    // Route::post('/', [DecanoCordinadorController::class, 'guardar_acta'])->name('guardar_acta');
-
-    Route::get('/{id}/editar', [DecanoCordinadorController::class, 'editar_acta'])->name('editar_acta');
-
-    Route::put('/{id}', [DecanoCordinadorController::class, 'actualizar_acta'])->name('actualizar_acta');
-
-    Route::delete('/{id}', [DecanoCordinadorController::class, 'eliminar_acta'])->name('eliminar_acta');
-
-    Route::put('/{id}/enviar', [DecanoCordinadorController::class, 'enviar_acta'])->name('enviar_acta');
+// Rutas para docentes - Acceso exclusivo para usuarios con rol 'docente'
+// Incluye funcionalidades de configuración, plan de mejoramiento y visualización de resultados
+Route::middleware(['auth', 'role:docente'])->prefix('docente')->group(function () {
+    Route::get("/", [DocenteController::class, 'p_docente'])->name('docente.p_docente');
+    Route::get("/configuracion", [DocenteController::class, 'confi'])->name('docente.confi');
+    Route::get("/PDmejorado", [DocenteController::class, 'pde'])->name('docente.pde');
+    Route::get("/resultados", [DocenteController::class, 'result'])->name('docente.result');
 });
 
-// rutas para el administrador
-Route::get('/Admin', [AdminController::class, 'Dashboard'])->name('Admin.Dashboard');
-// rutas para el periodo de evaluacion
-Route::get('/Admin/periodo_evaluacion', [AdminController::class, 'periodo_evaluacion'])
-->name('admin.periodo_evaluacion');
-// rutas para los reportes
-Route::get('/Admin/reportes', [AdminController::class, 'reportes'])->name('admin.reportes_admin');
-// rutas para los roles y permisos
-Route::get('/Admin/roles_permisos', [AdminController::class, 'roles_permisos'])
-->name('admin.roles_permisos');
-
-
-// rutas de decano coordinador actas de compromiso//
-
-Route::get('/decano/actaCompromiso', [DecanoCordinadorController::class, 'acta_compromiso'])->name('decano.acta_compromiso');
-// alertas bajo desempeño
-Route::get('/decano/alertasBajoDesempeno', [DecanoCordinadorController::class, 'abd'])->name('decano.abd');
-// modales seguimiento
-Route::get('/decano/modalesSeguimiento', [DecanoCordinadorController::class, 'seguimiento'])->name('decano.seguimiento');
-// proceso sancion retiro
-Route::get('/decano/procesoSancionRetiro', [DecanoCordinadorController::class, 'psr'])->name('decano.psr');
-// seguimiento plan de mejora
-Route::get('/decano/seguimientoPlanMejora', [DecanoCordinadorController::class, 'spm'])->name('decano.spm');
-//total de docentes
-Route::get('/decanato/total_docente', [DecanoCordinadorController::class, 'total_Docentes'])->name('decanato.total_docentes');
-//docentes no evaluados
-Route::get('/decano/totalNoEvaluados', [DecanoCordinadorController::class, 'totalNoEvaluados'])->name('decano.totalNoEvaluados');
-//esrtudiantes no evaluados
-Route::get('/decano/totalEstudiantesNoEvaluaron', [DecanoCordinadorController::class, 'totalEstudiantesNoEvaluaron'])->name('decano.totalEstudiantesNoEvaluaron');
-// editar acta de compromiso
-Route::get('/decano/editar-acta/{id_acta}', [DecanoCordinadorController::class, 'editarActa'])->name('decano.editar_acta');
-// actualizar acta de compromiso
-Route::put('/decano/actualizar-acta/{id_acta}', [DecanoCordinadorController::class, 'actualizarActa'])->name('decano.actualizar_acta');
-//promedio por facultad
-Route::get('/decano/promedio_global', [DecanoCordinadorController::class, 'promedio_global'])->name('decano.promedio_global');
- //promedio por facultad graficado
-Route::get('/decano/promedio-facultad-ultimo-periodo', [DecanoCordinadorController::class, 'obtenerPromedioPorFacultad']);
-Route::get('/decano/promedio-facultad', [DecanoCordinadorController::class, 'mostrarGraficoFacultades'])->name('decano.mostrarGraficoFacultades');
-Route::get('/decano/docentesDestacados', [DecanoCordinadorController::class, 'obtenerDocentesDestacados'])->name('decano.docentesdestacados');
-
-Route::get('/decano/buscar-docente', [DecanoCordinadorController::class, 'buscarDocente'])->name('decano.buscarDocente');
-
-Route::get('/decano/grafica-promedios', [DecanoCordinadorController::class, 'mostrarGrafica']);
-Route::get('/decano/alertas', [DecanoCordinadorController::class, 'index']);
-
-// Rutas para el excel
-Route::get('/importar', function () {
-    return view('importar');
+// Rutas para decano - Acceso exclusivo para usuarios con rol 'decano'
+// Gestión de actas de compromiso, seguimiento docente y estadísticas
+Route::middleware(['auth', 'role:decano'])->prefix('decano')->group(function () {
+    // Panel principal del decano
+    Route::get("/", [HomeController::class, 'index'])->name('user.index');
+    
+    // Gestión de actas de compromiso - CRUD y acciones específicas
+    Route::prefix('acta-compromiso')->name('decano.')->group(function () {
+        Route::get('/', [DecanoCordinadorController::class, 'acta_compromiso'])->name('acta_compromiso');
+        Route::get('/{id}/editar', [DecanoCordinadorController::class, 'editar_acta'])->name('editar_acta');
+        Route::put('/{id}', [DecanoCordinadorController::class, 'actualizar_acta'])->name('actualizar_acta');
+        Route::delete('/{id}', [DecanoCordinadorController::class, 'eliminar_acta'])->name('eliminar_acta');
+        Route::put('/{id}/enviar', [DecanoCordinadorController::class, 'enviar_acta'])->name('enviar_acta');
+    });
+    
+    // Sistema de alertas y seguimiento docente
+    // Incluye monitoreo de bajo desempeño y procesos de mejora
+    Route::get('/alertasBajoDesempeno', [DecanoCordinadorController::class, 'abd'])->name('decano.abd');
+    Route::get('/modalesSeguimiento', [DecanoCordinadorController::class, 'seguimiento'])->name('decano.seguimiento');
+    Route::get('/procesoSancionRetiro', [DecanoCordinadorController::class, 'psr'])->name('decano.psr');
+    Route::get('/seguimientoPlanMejora', [DecanoCordinadorController::class, 'spm'])->name('decano.spm');
+    
+    // Estadísticas y reportes de evaluación
+    // Visualización de métricas, promedios y análisis de resultados
+    Route::get('/total_docente', [DecanoCordinadorController::class, 'total_Docentes'])->name('decanato.total_docentes');
+    Route::get('/totalNoEvaluados', [DecanoCordinadorController::class, 'totalNoEvaluados'])->name('decano.totalNoEvaluados');
+    Route::get('/totalEstudiantesNoEvaluaron', [DecanoCordinadorController::class, 'totalEstudiantesNoEvaluaron'])->name('decano.totalEstudiantesNoEvaluaron');
+    Route::get('/promedio_global', [DecanoCordinadorController::class, 'promedio_global'])->name('decano.promedio_global');
+    Route::get('/promedio-facultad-ultimo-periodo', [DecanoCordinadorController::class, 'obtenerPromedioPorFacultad']);
+    Route::get('/promedio-facultad', [DecanoCordinadorController::class, 'mostrarGraficoFacultades'])->name('decano.mostrarGraficoFacultades');
+    Route::get('/docentesDestacados', [DecanoCordinadorController::class, 'obtenerDocentesDestacados'])->name('decano.docentesdestacados');
+    Route::get('/grafica-promedios', [DecanoCordinadorController::class, 'mostrarGrafica']);
+    Route::get('/alertas', [DecanoCordinadorController::class, 'index']);
+    
+    // Gestión de búsqueda y administración de docentes
+    // Incluye funcionalidades de búsqueda y edición de información docente
+    Route::get('/buscar-docente', [DecanoCordinadorController::class, 'buscarDocente'])->name('decano.buscarDocente');
+    Route::get('/editar-acta/{id_acta}', [DecanoCordinadorController::class, 'editarActa'])->name('decano.editar_acta');
+    Route::put('/actualizar-acta/{id_acta}', [DecanoCordinadorController::class, 'actualizarActa'])->name('decano.actualizar_acta');
+    Route::get('/descargar', [DecanoCordinadorController::class, 'descargar'])->name('descargar.acta_compromiso');
+    Route::get('/actaCompromiso', [DecanoCordinadorController::class, 'acta_compromiso'])->name('decano.acta_compromiso');
+    Route::get('/acta-compromiso', [DecanoCordinadorController::class, 'mostrar_formulario_acta'])->name('actas.formulario');
+    Route::get('/actas', [DecanoCordinadorController::class, 'listar_actas'])->name('actas.index');
+    
+    // Sistema de sanciones - Gestión completa del proceso sancionatorio
+    Route::prefix('sanciones')->group(function () {
+        Route::get('/formulario', [DecanoCordinadorController::class, 'mostrarFormularioSancion'])->name('formulario_sancion');
+        Route::post('/guardar', [DecanoCordinadorController::class, 'guardarSancion'])->name('guardar_sancion');
+        Route::get('/', [DecanoCordinadorController::class, 'listarSanciones'])->name('sanciones');
+        Route::get('/{id}', [DecanoCordinadorController::class, 'verDetalleSancion'])->name('ver_sancion');
+        Route::get('/{id}/pdf', [DecanoCordinadorController::class, 'generarPdfSancion'])->name('generar_pdf_sancion');
+        Route::post('/{id}/enviar', [DecanoCordinadorController::class, 'enviarResolucionDocente'])->name('enviar_resolucion');
+        Route::post('/enviar-ajax', [DecanoCordinadorController::class, 'enviarResolucionAjax'])->name('enviar_resolucion_ajax');
+    });
 });
-// Route::post('/importar-excel', [ExcelImportController::class, 'importar']);
-Route::get('/cargar-excel', function () {
-    return view('cargar-excel');
-});
-Route::post('/importar', [ExcelImportController::class, 'importar']);
-Route::get('/cargar-excel', function () {
-    return view('cargar-excel');
-});
-Route::post('/importar', [ExcelImportController::class, 'importar']);
 
-//mas rutas del Decano
-Route::get('/buscar-docente', [DecanoCordinadorController::class, 'buscarDocente'])->name('buscar.docente');
-Route::get('/docente/{id_docente}', [DecanoCordinadorController::class, 'getDocente']);
-Route::get('/decano/acta-compromiso', [DecanoCordinadorController::class, 'mostrar_formulario_acta'])->name('actas.formulario');
-// Route::post('/decano/guardar-acta', [DecanoCordinadorController::class, 'guardar_acta'])->name('guardar.acta');
-Route::get('/decano/actas', [DecanoCordinadorController::class, 'listar_actas'])->name('actas.index');
-Route::get('/decano/editar-acta/{id_acta}', [DecanoCordinadorController::class, 'editarActa'])->name('decano.editar_acta');
-
-Route::get('/decano/descargar', [DecanoCordinadorController::class, 'descargar'])
-    ->name('descargar.acta_compromiso');
-Route::prefix('actas-compromisos')->group(function () {
-    // Vista principal para crear actas
+// Rutas específicas para actas de compromiso - Módulo independiente
+// Accesible solo para decanos, incluye gestión completa de actas
+Route::middleware(['auth', 'role:decano'])->prefix('actas-compromisos')->group(function () {
     Route::get('/', [ActaCompromisoController::class, 'index'])->name('actas.compromiso.index');
-    // Guardar nueva acta
     Route::post('/guardar', [DecanoCordinadorController::class, 'store'])->name('actas.compromiso.store');
-
-    // Filtrado de docentes para AJAX
     Route::get('/filtrar-docentes', [DecanoCordinadorController::class, 'filtrarDocentes'])->name('actas.compromiso.filtrar');
-
-    // Obtener datos de un docente específico
     Route::get('/docente/{id}', [DecanoCordinadorController::class, 'obtenerDocente'])->name('actas.compromiso.docente');
-
-    // Listar todas las actas
     Route::get('/listar', [DecanoCordinadorController::class, 'listar'])->name('actas.compromiso.listar');
-
-    // Ver detalles de un acta específica'
     Route::get('/ver/{id}', [DecanoCordinadorController::class, 'ver'])->name('actas.compromiso.ver');
 });
-// // Rutas para el sistema de Actas de Compromiso
-// Route::prefix('actas-compromiso')->group(function () {
-//     // Vista principal
-//     Route::get('/', [App\Http\Controllers\API\ActaCompromisoController::class, 'index'])
-//         ->name('decano.acta_compromiso');
 
-//     // Obtener datos de un docente específico para autocompletado
-//     Route::get('/obtener-docente/{id}', [App\Http\Controllers\API\ActaCompromisoController::class, 'obtenerDocente']);
-
-//     // Filtrar docentes según criterios seleccionados
-//     Route::get('/filtrar-docentes', [App\Http\Controllers\API\ActaCompromisoController::class, 'filtrarDocentes'])
-//         ->name('actas.compromiso.filtrar');
-
-    // Guardar nueva acta
-    // Route::post('/guardar', [App\Http\Controllers\API\ActaCompromisoController::class, 'store'])
-    //     ->name('actas.compromiso.store');
-    // Route::post('/actas-compromiso/guardar', [App\Http\Controllers\API\ActaCompromisoController::class, 'store'])
-    // ->name('decano.guardar_acta');
-    // Route::post('/guardar', [ActaCompromisoController::class, 'store'])->name('guardar.acta_compromiso');
-
-    //     Route::post('/guardar', [App\Http\Controllers\API\ActaCompromisoController::class, 'guardar'])
-    // ->name('decano.guardar_acta');
-    
-
-    // Ver acta específica
-//   Route::get('/ver/{id}', [App\Http\Controllers\API\ActaCompromisoController::class, 'ver'])
-//     ->name('actas.compromiso.ver');
-
-
-//     // Descargar PDF
-//     Route::get('/descargar/{id}', [App\Http\Controllers\API\ActaCompromisoController::class, 'descargarPDF'])
-//         ->name('descargar.acta_compromiso');
-
-//     // Eliminar acta
-//     Route::delete('/eliminar/{id}', [App\Http\Controllers\API\ActaCompromisoController::class, 'destroy'])
-//         ->name('actas.compromiso.destroy');
-// });
-
-// // Rutas para la funcionalidad de Sanciones del panel del Decano
-Route::middleware(['auth', 'role:decano,coordinador'])->prefix('decano')->name('decano.')->group(function () {
-    // Mostrar formulario de sanción
-    Route::get('/sanciones/formulario', [DecanoCordinadorController::class, 'mostrarFormularioSancion'])->name('formulario_sancion');
-
-    // Guardar sanción
-    Route::post('/sanciones/guardar', [DecanoCordinadorController::class, 'guardarSancion'])->name('guardar_sancion');
-
-    // Listar sanciones
-    Route::get('/sanciones', [DecanoCordinadorController::class, 'listarSanciones'])->name('sanciones');
-
-    // Ver detalle de sanción
-    Route::get('/sanciones/{id}', [DecanoCordinadorController::class, 'verDetalleSancion'])->name('ver_sancion');
-
-    // Generar PDF de sanción
-    Route::get('/sanciones/{id}/pdf', [DecanoCordinadorController::class, 'generarPdfSancion'])->name('generar_pdf_sancion');
-
-    // Enviar resolución al docente
-    Route::post('/sanciones/{id}/enviar', [DecanoCordinadorController::class, 'enviarResolucionDocente'])->name('enviar_resolucion');
-
-    // Endpoint AJAX para enviar resolución
-    Route::post('/sanciones/enviar-ajax', [DecanoCordinadorController::class, 'enviarResolucionAjax'])->name('enviar_resolucion_ajax');
+// Rutas para administrador - Acceso exclusivo para usuarios con rol 'admin'
+// Incluye configuración del sistema, gestión de períodos y reportes generales
+Route::middleware(['auth', 'role:admin'])->prefix('Admin')->group(function () {
+    // Panel de administración y configuración general
+    Route::get('/', [AdminController::class, 'Dashboard'])->name('Admin.Dashboard');
+    Route::get('/periodo_evaluacion', [AdminController::class, 'periodo_evaluacion'])->name('admin.periodo_evaluacion');
+    Route::get('/reportes', [AdminController::class, 'reportes'])->name('admin.reportes_admin');
+    Route::get('/roles_permisos', [AdminController::class, 'roles_permisos'])->name('admin.roles_permisos');
 });
