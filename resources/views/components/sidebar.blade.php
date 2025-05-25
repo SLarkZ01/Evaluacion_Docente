@@ -36,7 +36,7 @@
             <!-- Logo Header -->
             <div class="logo-header" data-background-color="blue">
 
-                <a href="" class="logo">
+                <a href="{{ route('welcome') }}" class="logo">
                     <img src="{{ asset('images/escudo.png') }}" alt="navbar brand" class="navbar-brand" height="42"
                         style="max-width: 100%; object-fit: contain;">
                 </a>
