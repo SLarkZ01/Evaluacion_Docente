@@ -226,7 +226,7 @@
                                 @endphp
                                 <a href="{{ $dashboardRoute }}" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">Ir al Dashboard</a>
                             @else
-                                <a href="/importar/cargar-excel" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">
+                                <a href="{{ route('cargar-excel') }}" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">
                                     <i class="fas fa-file-excel mr-2"></i>Cargar Excel
                                 </a>
                                 <a href="{{ route('login') }}" class="px-8 py-3 bg-white hover:bg-gray-100 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">Iniciar Sesión</a>
@@ -331,7 +331,7 @@
                             <a href="{{ $dashboardRoute }}" class="inline-block px-8 py-3 bg-primary-custom hover:bg-blue-900 rounded-lg text-white font-semibold transition duration-300 shadow-md w-full sm:w-auto">Ir al Dashboard</a>
                         @else
                             <div class="flex flex-col sm:flex-row justify-center gap-4 max-w-xs sm:max-w-md mx-auto">
-                                <a href="/importar/cargar-excel" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold transition duration-300 shadow-md w-full sm:w-auto">
+                                <a href="{{ route('cargar-excel') }}" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold transition duration-300 shadow-md w-full sm:w-auto">
                                     <i class="fas fa-file-excel mr-2"></i>Cargar Excel
                                 </a>
                                 <a href="{{ route('login') }}" class="px-8 py-3 bg-primary-custom hover:bg-blue-900 text-white rounded-lg font-semibold transition duration-300 shadow-md w-full sm:w-auto">Iniciar Sesión</a>

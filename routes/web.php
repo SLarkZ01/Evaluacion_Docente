@@ -35,15 +35,11 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Rutas de importación de Excel (Todo el mundo puede acceder)
-Route::prefix('importar')->group(function () {
-    Route::get('/', function () {
-        return view('importar');
-    });
-    Route::get('/cargar-excel', function () {
-        return view('cargar-excel');
-    });
-    Route::post('/', [ExcelImportController::class, 'importar']);
+Route::get('/cargar-excel', function () {
+    return view('cargar-excel');
 });
+
+Route::post('/importar', [ExcelImportController::class, 'importar']);
 
 // Rutas de gestión de perfil - Accesibles para todos los usuarios autenticados
 Route::middleware('auth')->group(function () {
