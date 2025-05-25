@@ -123,8 +123,10 @@
     <div class="col-md-12 mb-4">
         <div class="card">
             <div class="card-header bg-danger text-white">
-                <h4 class="card-title">Eliminar Cuenta</h4>
-                <p class="card-category">Una vez eliminada su cuenta, todos sus recursos y datos se eliminarán permanentemente.</p>
+                <h4 class="card-title text-white fw-bold">Eliminar Cuenta</h4>
+                <p class="card-category text-white" style="color: rgba(255, 255, 255, 0.801) !important;">
+                    Una vez eliminada su cuenta, todos sus recursos y datos se eliminarán permanentemente.
+                </p>
             </div>
             <div class="card-body">
                 <p>Antes de eliminar su cuenta, descargue cualquier dato o información que desee conservar.</p>
