@@ -30,7 +30,7 @@
                             </div>
                         @endif
 
-                        <form action="/importar" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <form action="{{ route('importar') }}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                             @csrf
                             <div class="mb-4">
                                 <label for="tipo_datos" class="form-label">Tipo de datos a importar</label>
