@@ -51,6 +51,8 @@ Route::get("/docente/PDmejorado", [DocenteController::class, 'pde'])->name('doce
 //resultados
 Route::get("/docente/resultados", [DocenteController::class, 'result'])->name('docente.result');
 
+
+// Rutas principal del decano
 Route::get("/decano", [HomeController::class, 'index'])->name('user.index');
 
 // Rutas para actas de compromiso

@@ -50,6 +50,16 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(RouteServiceProvider::HOME);
+        // Redireccionar según el rol del usuario
+        switch ($user->id_rol) {
+            case 1: // Decano
+                return redirect()->route('user.index');
+            case 2: // Docente
+                return redirect()->route('docente.p_docente');
+            case 3: // Administrador
+                return redirect()->route('Admin.Dashboard');
+            default:
+                return redirect(RouteServiceProvider::HOME);
+        }
     }
 }

@@ -35,11 +35,11 @@ class AuthenticatedSessionController extends Controller
         // Redirigir según el rol del usuario
         switch ($user->id_rol) {
             case 1: // Decano
-                return redirect()->route('user.index');
+                return redirect()->route('decano.index');
             case 2: // Docente
                 return redirect()->route('docente.p_docente');
             case 3: // Administrador
-                return redirect()->route('Admin.Dashboard');
+                return redirect()->route('admin.Dashboard');
             default:
                 return redirect()->intended(RouteServiceProvider::HOME);
         }

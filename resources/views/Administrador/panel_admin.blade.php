@@ -1,65 +1,11 @@
 @extends('layouts.principal')
 @section('titulo', 'Panel de Administrador')
-@section('menu-sidebar')
-
-    <li class="nav-item active">
-        <a href="{{ route('Admin.Dashboard') }}">
-            <i class="fas fa-home"></i>
-            <p>Inicio</p>
-        </a>
-    </li>
-    <li class="nav-section">
-        <span class="sidebar-mini-icon">
-            <i class="fa fa-ellipsis-h"></i>
-        </span>
-        <h4 class="text-section">Gestión Docente</h4>
-    </li>
-    <li class="nav-item">
-        <a href="{{ route('admin.roles_permisos') }}">
-            <i class="fas fa-file-signature"></i>
-            <p>Gestion de Roles y Permisos</p>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a href="{{ route('admin.periodo_evaluacion') }}">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>Configuracion de Periodo</p>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a href="{{ route('admin.reportes_admin') }}">
-            <i class="fas fa-chart-line"></i>
-            <p>Reportes y Estadisticas</p>
-        </a>
-    </li>
-    <li class="nav-section">
-        <span class="sidebar-mini-icon">
-            <i class="fa fa-ellipsis-h"></i>
-        </span>
-        <h4 class="text-section">Configuración</h4>
-    </li>
-   
-    <li class="nav-item">
-        <a href="{{ route('user.login') }}">
-            <i class="fas fa-sign-out-alt"></i>
-            <p>Cerrar Sesión</p>
-        </a>
-    </li>
-
-    @section('name-perfil')
-    <span>
-        Nelson Javier
-    <span class="user-level">Administrador</span>
-    <span class="caret"></span>
-    </span>
-    @endsection
-@endsection
 @section('contenido')
 
                 <!-- Encabezado y bienvenida -->
                 <div class="header-card animated-card">
                     <h1>Panel de Administrador</h1>
-                    <p class="text-muted">Bienvenido al sistema de Evaluación Docente - Panel de Control</p>
+                    <p class="text-muted">Bienvenido {{ auth()->user()->name }} al sistema de Evaluación Docente - Panel de Control</p>
                 </div>
 
                 <!-- Tarjetas de estadísticas principales -->

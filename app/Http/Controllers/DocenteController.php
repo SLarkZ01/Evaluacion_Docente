@@ -12,10 +12,6 @@ class DocenteController extends Controller
     public function p_docente()
     {
         $correo = Session::get('correo_usuario');
-
-        if (!$correo) {
-            return redirect()->route('user.login')->withErrors(['error' => 'No hay sesión activa. Inicia sesión.']);
-        }
     
         // Llamar al procedimiento almacenado
         $evaluaciones = DB::select('CALL ObtenerEvaluacionesPorCorreo(?)', [$correo]);

@@ -31,7 +31,26 @@
                                 <div class="flex items-center space-x-4">
                                     @if (Route::has('login'))
                                         @auth
-                                            <a href="{{ url('/dashboard') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                                            @php
+                                                $dashboardRoute = '/dashboard';
+                                                if(auth()->user()->rol) {
+                                                    switch(auth()->user()->rol->nombre) {
+                                                        case 'Administrador':
+                                                            $dashboardRoute = route('Admin.Dashboard');
+                                                            break;
+                                                        case 'Decano':
+                                                            $dashboardRoute = route('user.index');
+                                                            break;
+                                                        case 'Docente':
+                                                            $dashboardRoute = route('docente.p_docente');
+                                                            break;
+                                                        default:
+                                                            $dashboardRoute = route('dashboard');
+                                                            break;
+                                                    }
+                                                }
+                                            @endphp
+                                            <a href="{{ $dashboardRoute }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
                                         @else
                                             <a href="{{ route('login') }}" class="px-4 py-2 rounded-md border border-white text-white hover:bg-white hover:text-gray-800 transition duration-300 text-sm font-medium">Iniciar Sesión</a>
                                             @if (Route::has('register'))
@@ -57,7 +76,26 @@
                     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         @if (Route::has('login'))
                             @auth
-                                <a href="{{ url('/dashboard') }}" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
+                                @php
+                                    $dashboardRoute = '/dashboard';
+                                    if(auth()->user()->rol) {
+                                        switch(auth()->user()->rol->nombre) {
+                                            case 'Administrador':
+                                                $dashboardRoute = route('Admin.Dashboard');
+                                                break;
+                                            case 'Decano':
+                                                $dashboardRoute = route('user.index');
+                                                break;
+                                            case 'Docente':
+                                                $dashboardRoute = route('docente.p_docente');
+                                                break;
+                                            default:
+                                                $dashboardRoute = route('dashboard');
+                                                break;
+                                        }
+                                    }
+                                @endphp
+                                <a href="{{ $dashboardRoute }}" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
                             @else
                                 <a href="{{ route('login') }}" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Iniciar Sesión</a>
                                 @if (Route::has('register'))
@@ -76,7 +114,26 @@
                     <p class="text-xl mb-10 max-w-3xl mx-auto">Una plataforma completa para crear, administrar y organizar tus publicaciones de manera eficiente</p>
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="px-8 py-3 bg-secondary-400 hover:bg-secondary-500 rounded-lg text-white font-semibold text-lg transition duration-300 shadow-lg">Ir al Dashboard</a>
+                            @php
+                                $dashboardRoute = '/dashboard';
+                                if(auth()->user()->rol) {
+                                    switch(auth()->user()->rol->nombre) {
+                                        case 'Administrador':
+                                            $dashboardRoute = route('Admin.Dashboard');
+                                            break;
+                                        case 'Decano':
+                                            $dashboardRoute = route('user.index');
+                                            break;
+                                        case 'Docente':
+                                            $dashboardRoute = route('docente.p_docente');
+                                            break;
+                                        default:
+                                            $dashboardRoute = route('dashboard');
+                                            break;
+                                    }
+                                }
+                            @endphp
+                            <a href="{{ $dashboardRoute }}" class="px-8 py-3 bg-secondary-400 hover:bg-secondary-500 rounded-lg text-white font-semibold text-lg transition duration-300 shadow-lg">Ir al Dashboard</a>
                         @else
                             <a href="{{ route('register') }}" class="px-8 py-3 bg-secondary-400 hover:bg-secondary-500 rounded-lg text-white font-semibold text-lg transition duration-300 shadow-lg">Comenzar Ahora</a>
                         @endif
@@ -157,7 +214,26 @@
                     <p class="text-xl mb-10 text-gray-600 max-w-3xl mx-auto">Únete a mi plataforma y empieza a gestionar tus publicaciones de manera eficiente</p>
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="inline-block px-8 py-3 bg-primary-400 hover:bg-primary-500 rounded-lg text-white font-semibold transition duration-300 shadow-md w-full sm:w-auto">Ir al Dashboard</a>
+                            @php
+                                $dashboardRoute = '/dashboard';
+                                if(auth()->user()->rol) {
+                                    switch(auth()->user()->rol->nombre) {
+                                        case 'Administrador':
+                                            $dashboardRoute = route('Admin.Dashboard');
+                                            break;
+                                        case 'Decano':
+                                            $dashboardRoute = route('user.index');
+                                            break;
+                                        case 'Docente':
+                                            $dashboardRoute = route('docente.p_docente');
+                                            break;
+                                        default:
+                                            $dashboardRoute = route('dashboard');
+                                            break;
+                                    }
+                                }
+                            @endphp
+                            <a href="{{ $dashboardRoute }}" class="inline-block px-8 py-3 bg-primary-400 hover:bg-primary-500 rounded-lg text-white font-semibold transition duration-300 shadow-md w-full sm:w-auto">Ir al Dashboard</a>
                         @else
                             <div class="flex flex-col sm:flex-row justify-center gap-4 max-w-xs sm:max-w-md mx-auto">
                                 <a href="{{ route('login') }}" class="px-8 py-3 bg-primary-400 hover:bg-primary-500 rounded-lg text-white font-semibold transition duration-300 shadow-md w-full sm:w-auto">Iniciar Sesión</a>

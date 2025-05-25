@@ -27,12 +27,12 @@
         <x-sidebar>
             {{-- Slot para el menú personalizado --}}
             <x-slot name="menu">
-                @yield('menu-sidebar')
+                <x-menu-sidebar />
             </x-slot>
         
         <x-slot name="perfil">
             {{-- Slot para el perfil --}}
-            @yield('name-perfil')
+            <x-user-profile />
         </x-slot>
             {{-- Contenido principal de cada vista --}}
             @yield('contenido')
