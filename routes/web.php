@@ -55,7 +55,7 @@ Route::get("/docente/resultados", [DocenteController::class, 'result'])->name('d
 // Rutas principal del decano
 Route::get("/decano", [HomeController::class, 'index'])->name('user.index');
 
-// Rutas para actas de compromiso
+// Rutas para actas de compromiso del panel decano
 Route::prefix('decano/acta-compromiso')->name('decano.')->group(function () {
     Route::get('/', [DecanoCordinadorController::class, 'acta_compromiso'])->name('acta_compromiso');
 
@@ -82,8 +82,8 @@ Route::get('/Admin/roles_permisos', [AdminController::class, 'roles_permisos'])
 ->name('admin.roles_permisos');
 
 
-// rutas de decano coordinador//
-// acta de compromisoS
+// rutas de decano coordinador actas de compromiso//
+
 Route::get('/decano/actaCompromiso', [DecanoCordinadorController::class, 'acta_compromiso'])->name('decano.acta_compromiso');
 // alertas bajo desempeño
 Route::get('/decano/alertasBajoDesempeno', [DecanoCordinadorController::class, 'abd'])->name('decano.abd');
@@ -95,8 +95,6 @@ Route::get('/decano/procesoSancionRetiro', [DecanoCordinadorController::class, '
 Route::get('/decano/seguimientoPlanMejora', [DecanoCordinadorController::class, 'spm'])->name('decano.spm');
 //total de docentes
 Route::get('/decanato/total_docente', [DecanoCordinadorController::class, 'total_Docentes'])->name('decanato.total_docentes');
-
-
 //docentes no evaluados
 Route::get('/decano/totalNoEvaluados', [DecanoCordinadorController::class, 'totalNoEvaluados'])->name('decano.totalNoEvaluados');
 //esrtudiantes no evaluados
@@ -110,8 +108,6 @@ Route::get('/decano/promedio_global', [DecanoCordinadorController::class, 'prome
  //promedio por facultad graficado
 Route::get('/decano/promedio-facultad-ultimo-periodo', [DecanoCordinadorController::class, 'obtenerPromedioPorFacultad']);
 Route::get('/decano/promedio-facultad', [DecanoCordinadorController::class, 'mostrarGraficoFacultades'])->name('decano.mostrarGraficoFacultades');
-
-
 Route::get('/decano/docentesDestacados', [DecanoCordinadorController::class, 'obtenerDocentesDestacados'])->name('decano.docentesdestacados');
 
 Route::get('/decano/buscar-docente', [DecanoCordinadorController::class, 'buscarDocente'])->name('decano.buscarDocente');
@@ -119,29 +115,27 @@ Route::get('/decano/buscar-docente', [DecanoCordinadorController::class, 'buscar
 Route::get('/decano/grafica-promedios', [DecanoCordinadorController::class, 'mostrarGrafica']);
 Route::get('/decano/alertas', [DecanoCordinadorController::class, 'index']);
 
-
+// Rutas para el excel
 Route::get('/importar', function () {
     return view('importar');
 });
-
 // Route::post('/importar-excel', [ExcelImportController::class, 'importar']);
 Route::get('/cargar-excel', function () {
     return view('cargar-excel');
 });
-
 Route::post('/importar', [ExcelImportController::class, 'importar']);
 Route::get('/cargar-excel', function () {
     return view('cargar-excel');
 });
-
 Route::post('/importar', [ExcelImportController::class, 'importar']);
+
+//mas rutas del Decano
 Route::get('/buscar-docente', [DecanoCordinadorController::class, 'buscarDocente'])->name('buscar.docente');
 Route::get('/docente/{id_docente}', [DecanoCordinadorController::class, 'getDocente']);
 Route::get('/decano/acta-compromiso', [DecanoCordinadorController::class, 'mostrar_formulario_acta'])->name('actas.formulario');
 // Route::post('/decano/guardar-acta', [DecanoCordinadorController::class, 'guardar_acta'])->name('guardar.acta');
 Route::get('/decano/actas', [DecanoCordinadorController::class, 'listar_actas'])->name('actas.index');
 Route::get('/decano/editar-acta/{id_acta}', [DecanoCordinadorController::class, 'editarActa'])->name('decano.editar_acta');
-// Add this to your routes/web.php file
 
 Route::get('/decano/descargar', [DecanoCordinadorController::class, 'descargar'])
     ->name('descargar.acta_compromiso');
@@ -201,7 +195,7 @@ Route::prefix('actas-compromisos')->group(function () {
 //         ->name('actas.compromiso.destroy');
 // });
 
-// // Rutas para la funcionalidad de Sanciones
+// // Rutas para la funcionalidad de Sanciones del panel del Decano
 Route::middleware(['auth', 'role:decano,coordinador'])->prefix('decano')->name('decano.')->group(function () {
     // Mostrar formulario de sanción
     Route::get('/sanciones/formulario', [DecanoCordinadorController::class, 'mostrarFormularioSancion'])->name('formulario_sancion');
