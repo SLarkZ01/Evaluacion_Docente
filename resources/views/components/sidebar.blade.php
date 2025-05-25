@@ -100,13 +100,8 @@
                                 <ul class="nav">
                                    
                                     <li>
-                                        <a href="#edit">
+                                        <a href="{{ route('profile.edit') }}">
                                             <span class="link-collapse">Editar perfil</span>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="#settings">
-                                            <span class="link-collapse">Configuracion</span>
                                         </a>
                                     </li>
                                 </ul>

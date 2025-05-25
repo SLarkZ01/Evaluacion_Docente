@@ -56,21 +56,16 @@ class UsuarioController extends Controller
                 $request->identificacion,
                 $request->tipo_usuario
             ]);
-             return response()->json([
-            'success' => true,
-            'message' => 'Usuario creado correctamente',
-            'data' => $request->all()
-        ], 201);
-
-        //     return response()->json([
-        //         'mensaje' => 'Usuario creado exitosamente'
-        //     ], 201);
-
-        // } catch (\Exception $e) {
-        //     return response()->json([
-        //         'mensaje' => 'Error al crear el usuario',
-        //         'error' => $e->getMessage()
-        //     ], 500);
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario creado correctamente',
+                'data' => $request->all()
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'mensaje' => 'Error al crear el usuario',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 

@@ -16,7 +16,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        // Detectar el rol del usuario para mostrar la vista adecuada
+        $userRole = $request->user()->rol->nombre ?? 'default';
+        
+        // Usar la vista adaptada al layout principal
+        return view('editar_perfil', [
             'user' => $request->user(),
         ]);
     }

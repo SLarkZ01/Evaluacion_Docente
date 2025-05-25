@@ -50,6 +50,8 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
+    <!-- Bootstrap JS Bundle (incluye Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 
     <!-- Scripts de lógica de docentes -->
@@ -67,6 +69,9 @@
     <script src="{{ asset('js/LogicaDecanoCoordinador/sancion_pdf_generator.js') }}"></script>
 
     <script src="{{ asset('js/LogicaDecanoCoordinador/script.js') }}"></script>
+
+    <!-- Scripts personalizados de las vistas -->
+    @stack('scripts')
 
 </body>
 
