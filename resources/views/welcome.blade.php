@@ -59,7 +59,7 @@
                 color: var(--primary-color);
             }
             .hero-section {
-                background-image: url('/images/FondoUniversidad.png');
+                background-image: url({{ asset('/images/FondoUniversidad.png') }});
                 background-size: cover;
                 background-position: center;
                 position: relative;
@@ -102,7 +102,7 @@
                     <div class="flex justify-between h-16">
                         <div class="flex items-center">
                             <a href="{{ url('/') }}" class="text-white font-semibold text-lg flex items-center">
-                                <img src="/images/LogoUniautonoma.png" alt="Logo Uniautónoma" class="h-10 mr-2">
+                                <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma" class="h-10 mr-2">
                                 Sistema de Evaluación Docente
                             </a>
                         </div>
@@ -191,7 +191,7 @@
             <section class="hero-section text-white py-20">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center hero-content">
                     <div class="flex justify-center mb-6">
-                        <img src="/images/escudo.png" alt="Escudo Uniautónoma" class="h-32">
+                        <img src="{{ asset('/images/escudo.png') }}" alt="Escudo Uniautónoma" class="h-32">
                     </div>
                     <h1 class="text-4xl md:text-5xl font-bold mb-6">Sistema de Evaluación Docente</h1>
                     <h2 class="text-2xl md:text-3xl font-semibold mb-4">Corporación Universitaria Autónoma del Cauca</h2>
@@ -345,7 +345,7 @@
         <footer class="bg-primary-custom text-white py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <div class="flex justify-center items-center mb-4">
-                    <img src="/images/LogoUniautonoma.png" alt="Logo Uniautónoma" class="h-10 mr-3">
+                    <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma" class="h-10 mr-3">
                     <span class="text-xl font-semibold">Corporación Universitaria Autónoma del Cauca</span>
                 </div>
                 <p>&copy; {{ date('Y') }} Sistema de Evaluación Docente. Todos los derechos reservados.</p>
