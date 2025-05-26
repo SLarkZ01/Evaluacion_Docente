@@ -30,6 +30,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+// Rutas para test de correo (solo en desarrollo)
+Route::get('/mail-test', [App\Http\Controllers\MailTestController::class, 'showTestForm'])->name('mail.test.form');
+Route::post('/mail-test', [App\Http\Controllers\MailTestController::class, 'testMail'])->name('mail.test');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
