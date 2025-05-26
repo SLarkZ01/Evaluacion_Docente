@@ -87,10 +87,10 @@
         }
 
         .hero-section {
-            background: var(--gradient-hero), url({{ asset('/images/FondoUniversidad.png') }});
+            background: linear-gradient(135deg, rgba(30, 64, 175, 0.7) 0%, rgba(59, 130, 246, 0.6) 100%), url({{ asset('/images/FondoUniversidad.png') }});
             background-size: cover;
             background-position: center;
-            background-blend-mode: overlay;
+            background-attachment: fixed;
             position: relative;
             overflow: hidden;
         }
@@ -102,9 +102,22 @@
             left: 0;
             width: 100%;
             height: 100%;
+            backdrop-filter: blur(3px);
             background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
             animation: shimmer 3s infinite;
             pointer-events: none;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            z-index: 1;
         }
 
         @keyframes shimmer {
@@ -143,7 +156,8 @@
 
         .hero-content {
             position: relative;
-            z-index: 2;
+            z-index: 10;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .feature-card {
@@ -176,7 +190,8 @@
         }
 
         .alert-excel {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.95) 0%, rgba(253, 230, 138, 0.95) 100%);
+            backdrop-filter: blur(10px);
             border: 2px solid #f59e0b;
             border-radius: 16px;
             padding: 24px;
@@ -184,7 +199,7 @@
             max-width: 600px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
             animation: pulse-glow 2s infinite;
         }
 
@@ -257,10 +272,16 @@
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        }
+
+        .hero-text-enhanced {
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            font-weight: 600;
         }
 
         .nav-link {
@@ -320,7 +341,7 @@
                         <a href="{{ url('/') }}"
                             class="text-white font-bold text-xl flex items-center hover:scale-105 transition-transform">
                             <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma"
-                                class="h-12 mr-3 floating-icon">
+                                class="h-12 mr-3">
                             <span class="hidden sm:inline">Sistema de Evaluación Docente</span>
                             <span class="sm:hidden">Evaluación Docente</span>
                         </a>
@@ -441,11 +462,11 @@
                     Sistema de <span class="text-yellow-300">Evaluación</span> Docente
                 </h1>
 
-                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-blue-100">
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-blue-100 hero-text-enhanced">
                     Corporación Universitaria Autónoma del Cauca
                 </h2>
 
-                <p class="text-xl md:text-2xl mb-12 max-w-4xl mx-auto text-blue-100 leading-relaxed">
+                <p class="text-xl md:text-2xl mb-12 max-w-4xl mx-auto text-blue-100 leading-relaxed hero-text-enhanced">
                     Plataforma moderna para la gestión integral y evaluación del desempeño docente
                 </p>
 
