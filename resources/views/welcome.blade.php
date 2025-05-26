@@ -32,6 +32,21 @@
             --gradient-hero: linear-gradient(135deg, rgba(30, 64, 175, 0.95) 0%, rgba(59, 130, 246, 0.9) 100%);
         }
 
+        /* Media queries para ajustes responsive */
+        @media (max-width: 640px) {
+
+            .btn-primary-custom,
+            .btn-secondary-custom {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .feature-card {
+                margin-left: 1rem;
+                margin-right: 1rem;
+            }
+        }
+
         * {
             scroll-behavior: smooth;
         }
@@ -458,36 +473,38 @@
                     </div>
                 </div>
 
-                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                <h1 class="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-4">
                     Sistema de <span class="text-yellow-300">Evaluación</span> Docente
                 </h1>
 
-                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-blue-100 hero-text-enhanced">
+                <h2
+                    class="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 sm:mb-6 text-blue-100 hero-text-enhanced px-4">
                     Corporación Universitaria Autónoma del Cauca
                 </h2>
 
-                <p class="text-xl md:text-2xl mb-12 max-w-4xl mx-auto text-blue-100 leading-relaxed hero-text-enhanced">
+                <p
+                    class="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 max-w-4xl mx-auto text-blue-100 leading-relaxed hero-text-enhanced px-4">
                     Plataforma moderna para la gestión integral y evaluación del desempeño docente
                 </p>
 
                 <!-- Alerta de Excel rediseñada -->
-                <div class="alert-excel">
+                <div class="alert-excel mx-4 sm:mx-auto">
                     <div class="alert-excel-content">
                         <div class="flex items-center justify-center mb-4">
-                            <div class="bg-orange-500 rounded-full p-3 mr-4">
-                                <i class="fas fa-file-excel text-white text-2xl"></i>
+                            <div class="bg-orange-500 rounded-full p-2 sm:p-3 mr-2 sm:mr-4">
+                                <i class="fas fa-file-excel text-white text-xl sm:text-2xl"></i>
                             </div>
-                            <h3 class="font-bold text-2xl text-orange-900">
+                            <h3 class="font-bold text-xl sm:text-2xl text-orange-900">
                                 ¡Paso Importante!
                             </h3>
                         </div>
-                        <p class="text-lg text-orange-800 font-medium leading-relaxed">
+                        <p class="text-base sm:text-lg text-orange-800 font-medium leading-relaxed px-2 sm:px-0">
                             Para comenzar a usar el sistema, primero necesitas cargar el archivo Excel con los datos de
                             docentes, estudiantes y programas académicos.
                         </p>
-                        <div class="mt-6 flex justify-center">
+                        <div class="mt-4 sm:mt-6 flex justify-center">
                             <div
-                                class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-full text-sm font-medium">
+                                class="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-500 text-white rounded-full text-xs sm:text-sm font-medium">
                                 <i class="fas fa-info-circle mr-2"></i>
                                 Requisito obligatorio para el funcionamiento
                             </div>
@@ -540,27 +557,28 @@
 
         <main>
             <!-- Características mejoradas -->
-            <section class="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+            <section class="py-12 sm:py-20 bg-gradient-to-br from-slate-50 to-blue-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="text-center mb-16">
-                        <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-4">
+                    <div class="text-center mb-10 sm:mb-16">
+                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-4">
                             Características del Sistema
                         </h2>
-                        <div class="section-divider mb-8"></div>
-                        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                        <div class="section-divider mb-6 sm:mb-8"></div>
+                        <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
                             Una plataforma completa diseñada para optimizar el proceso de evaluación docente
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-blue-500">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                        <div class="feature-card rounded-2xl shadow-xl p-6 sm:p-8 border-t-4 border-blue-500">
                             <div class="text-center">
                                 <div
-                                    class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                                    <i class="fas fa-chart-bar text-3xl text-white"></i>
+                                    class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                                    <i class="fas fa-chart-bar text-2xl sm:text-3xl text-white"></i>
                                 </div>
-                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Evaluación Integral</h3>
-                                <p class="text-gray-600 leading-relaxed">
+                                <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-gray-800">Evaluación Integral
+                                </h3>
+                                <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
                                     Sistema completo con métricas avanzadas y criterios establecidos institucionalmente para
                                     una evaluación objetiva y detallada.
                                 </p>
@@ -599,20 +617,21 @@
             </section>
 
             <!-- Llamada a la acción mejorada -->
-            <section class="cta-section py-20 relative">
+            <section class="cta-section py-12 sm:py-20 relative">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                    <div class="mb-12">
-                        <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">
+                    <div class="mb-8 sm:mb-12">
+                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-4 sm:mb-6">
                             ¿Listo para Comenzar?
                         </h2>
-                        <div class="section-divider mb-8"></div>
-                        <p class="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                        <div class="section-divider mb-6 sm:mb-8"></div>
+                        <p class="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-2">
                             Únete al futuro de la evaluación docente con nuestra plataforma innovadora de la Corporación
                             Universitaria Autónoma del Cauca
                         </p>
                     </div>
 
-                    <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto">
+                    <div
+                        class="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-8 md:p-12 max-w-4xl mx-auto">
                         @if (Route::has('login'))
                             @auth
                                 @php
@@ -636,13 +655,15 @@
                                 @endphp
                                 <div class="text-center">
                                     <div
-                                        class="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                                        <i class="fas fa-check text-3xl text-green-600"></i>
+                                        class="bg-green-100 rounded-full w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                                        <i class="fas fa-check text-2xl sm:text-3xl text-green-600"></i>
                                     </div>
-                                    <h3 class="text-2xl font-bold text-gray-800 mb-4">¡Bienvenido de nuevo!</h3>
-                                    <p class="text-gray-600 mb-8">Accede a tu panel de control personalizado</p>
+                                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">¡Bienvenido de nuevo!
+                                    </h3>
+                                    <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Accede a tu panel de control
+                                        personalizado</p>
                                     <a href="{{ $dashboardRoute }}"
-                                        class="btn-primary-custom px-12 py-4 rounded-2xl font-bold text-xl inline-block">
+                                        class="btn-primary-custom px-8 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl inline-block">
                                         <i class="fas fa-tachometer-alt mr-3"></i>Ir al Dashboard
                                     </a>
                                 </div>
@@ -684,14 +705,15 @@
         </main>
 
         <!-- Footer mejorado -->
-        <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12">
+        <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-8 sm:py-12">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
-                    <div class="flex justify-center items-center mb-8">
-                        <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma" class="h-12 mr-4">
-                        <div class="text-left">
-                            <h3 class="text-2xl font-bold">Corporación Universitaria Autónoma del Cauca</h3>
-                            <p class="text-gray-300">Sistema de Evaluación Docente</p>
+                    <div class="flex flex-col sm:flex-row justify-center items-center mb-6 sm:mb-8">
+                        <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma"
+                            class="h-10 sm:h-12 mb-4 sm:mb-0 sm:mr-4">
+                        <div class="text-center sm:text-left">
+                            <h3 class="text-xl sm:text-2xl font-bold">Corporación Universitaria Autónoma del Cauca</h3>
+                            <p class="text-gray-300 text-sm sm:text-base">Sistema de Evaluación Docente</p>
                         </div>
                     </div>
 
