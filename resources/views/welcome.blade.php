@@ -1,318 +1,395 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Sistema de Evaluación Docente - Uniautónoma del Cauca</title>
 
-        <!-- Vite/Tailwind CSS -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        
-        <!-- Font Awesome para iconos -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <!-- Google Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-            :root {
-                --primary-color: #003366; /* Azul institucional */
-                --secondary-color: #FFD700; /* Dorado institucional */
-                --accent-color: #CC0000; /* Rojo institucional */
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sistema de Evaluación Docente - Uniautónoma del Cauca</title>
+
+    <!-- Vite/Tailwind CSS -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            /* Azul moderno */
+            --primary-dark: #1e3a8a;
+            --secondary-color: #f59e0b;
+            /* Amarillo/dorado moderno */
+            --secondary-dark: #d97706;
+            --accent-color: #dc2626;
+            /* Rojo moderno */
+            --success-color: #059669;
+            --gradient-primary: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            --gradient-secondary: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --gradient-hero: linear-gradient(135deg, rgba(30, 64, 175, 0.95) 0%, rgba(59, 130, 246, 0.9) 100%);
+        }
+
+        * {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+
+        .bg-primary-custom {
+            background: var(--gradient-primary);
+        }
+
+        .bg-secondary-custom {
+            background: var(--gradient-secondary);
+        }
+
+        .text-primary-custom {
+            color: var(--primary-color);
+        }
+
+        .text-secondary-custom {
+            color: var(--secondary-color);
+        }
+
+        .btn-primary-custom {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.4);
+            color: white;
+        }
+
+        .btn-secondary-custom {
+            background: var(--gradient-secondary);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-secondary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            color: white;
+        }
+
+        .hero-section {
+            background: var(--gradient-hero), url({{ asset('/images/FondoUniversidad.png') }});
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
             }
-            body {
-                font-family: 'Poppins', sans-serif;
-                background-color: #f5f5f5;
+
+            100% {
+                transform: translateX(100%);
             }
-            .bg-primary-custom {
-                background-color: var(--primary-color);
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
             }
-            .bg-secondary-custom {
-                background-color: var(--secondary-color);
+
+            50% {
+                transform: translateY(-10px);
             }
-            .text-primary-custom {
-                color: var(--primary-color);
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
             }
-            .text-secondary-custom {
-                color: var(--secondary-color);
+
+            50% {
+                box-shadow: 0 0 30px rgba(245, 158, 11, 0.8);
             }
-            .border-primary-custom {
-                border-color: var(--primary-color);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(30, 64, 175, 0.1), transparent);
+            transition: all 0.6s;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .alert-excel {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 32px auto;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);
+            animation: pulse-glow 2s infinite;
+        }
+
+        .alert-excel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
             }
-            .border-secondary-custom {
-                border-color: var(--secondary-color);
+
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
             }
-            .btn-primary-custom {
-                background-color: var(--primary-color);
-                color: white;
-            }
-            .btn-primary-custom:hover {
-                background-color: #002244;
-                color: white;
-            }
-            .btn-secondary-custom {
-                background-color: var(--secondary-color);
-                color: var(--primary-color);
-            }
-            .btn-secondary-custom:hover {
-                background-color: #E6C200;
-                color: var(--primary-color);
-            }
-            .hero-section {
-                background-image: url({{ asset('/images/FondoUniversidad.png') }});
-                background-size: cover;
-                background-position: center;
-                position: relative;
-            }
-            .hero-section::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 51, 102, 0.8);
-                z-index: 1;
-            }
-            .hero-content {
-                position: relative;
-                z-index: 2;
-            }
-            .feature-card {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .feature-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-            }
-            .alert-box {
-                border-left: 4px solid var(--accent-color);
-                background-color: #FFEBEE;
-                padding: 15px;
-                margin: 20px 0;
-                border-radius: 4px;
-            }
-        </style>
-    </head>
-    <body>
-        <header>
-            <!-- Navegación -->
-            <nav class="bg-primary-custom shadow-lg">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between h-16">
-                        <div class="flex items-center">
-                            <a href="{{ url('/') }}" class="text-white font-semibold text-lg flex items-center">
-                                <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma" class="h-10 mr-2">
-                                Sistema de Evaluación Docente
-                            </a>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="hidden md:block">
-                                <div class="flex items-center space-x-4">
-                                    @if (Route::has('login'))
-                                        @auth
-                                            @php
-                                                $dashboardRoute = '/dashboard';
-                                                if(auth()->user()->rol) {
-                                                    switch(auth()->user()->rol->nombre) {
-                                                        case 'Administrador':
-                                                            $dashboardRoute = route('Admin.Dashboard');
-                                                            break;
-                                                        case 'Decano':
-                                                            $dashboardRoute = route('user.index');
-                                                            break;
-                                                        case 'Docente':
-                                                            $dashboardRoute = route('docente.p_docente');
-                                                            break;
-                                                        default:
-                                                            $dashboardRoute = route('dashboard');
-                                                            break;
-                                                    }
+        }
+
+        .alert-excel-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .process-step {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-left: 5px solid var(--primary-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .process-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(30, 64, 175, 0.05), transparent);
+            transition: all 0.5s;
+        }
+
+        .process-step:hover::before {
+            left: 100%;
+        }
+
+        .process-step:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left-color: var(--secondary-color);
+        }
+
+        .floating-icon {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .gradient-text {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+        }
+
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover::before {
+            left: 0;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            position: relative;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(30, 64, 175, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .section-divider {
+            height: 4px;
+            background: var(--gradient-primary);
+            margin: 0 auto;
+            border-radius: 2px;
+            width: 60px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <!-- Navegación mejorada -->
+        <nav class="bg-primary-custom shadow-2xl relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-20">
+                    <div class="flex items-center">
+                        <a href="{{ url('/') }}"
+                            class="text-white font-bold text-xl flex items-center hover:scale-105 transition-transform">
+                            <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma"
+                                class="h-12 mr-3 floating-icon">
+                            <span class="hidden sm:inline">Sistema de Evaluación Docente</span>
+                            <span class="sm:hidden">Evaluación Docente</span>
+                        </a>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="hidden md:block">
+                            <div class="flex items-center space-x-6">
+                                @if (Route::has('login'))
+                                    @auth
+                                        @php
+                                            $dashboardRoute = '/dashboard';
+                                            if (auth()->user()->rol) {
+                                                switch (auth()->user()->rol->nombre) {
+                                                    case 'Administrador':
+                                                        $dashboardRoute = route('Admin.Dashboard');
+                                                        break;
+                                                    case 'Decano':
+                                                        $dashboardRoute = route('user.index');
+                                                        break;
+                                                    case 'Docente':
+                                                        $dashboardRoute = route('docente.p_docente');
+                                                        break;
+                                                    default:
+                                                        $dashboardRoute = route('dashboard');
+                                                        break;
                                                 }
-                                            @endphp
-                                            <a href="{{ $dashboardRoute }}" class="text-white hover:text-secondary-custom px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
-                                        @else
-                                            <a href="{{ route('login') }}" class="px-4 py-2 rounded-md border border-secondary-custom text-white hover:bg-secondary-custom hover:text-primary-custom transition duration-300 text-sm font-medium">Iniciar Sesión</a>
-                                            @if (Route::has('register'))
-                                                <a href="{{ route('register') }}" class="px-4 py-2 rounded-md bg-secondary-custom text-primary-custom hover:bg-yellow-400 transition duration-300 text-sm font-medium">Registrarse</a>
-                                            @endif
-                                        @endauth
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="md:hidden flex items-center">
-                                <button id="mobile-menu-button" class="text-white hover:text-secondary-custom focus:outline-none">
-                                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Mobile menu -->
-                <div id="mobile-menu" class="hidden md:hidden bg-primary-custom">
-                    <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        @if (Route::has('login'))
-                            @auth
-                                @php
-                                    $dashboardRoute = '/dashboard';
-                                    if(auth()->user()->rol) {
-                                        switch(auth()->user()->rol->nombre) {
-                                            case 'Administrador':
-                                                $dashboardRoute = route('Admin.Dashboard');
-                                                break;
-                                            case 'Decano':
-                                                $dashboardRoute = route('user.index');
-                                                break;
-                                            case 'Docente':
-                                                $dashboardRoute = route('docente.p_docente');
-                                                break;
-                                            default:
-                                                $dashboardRoute = route('dashboard');
-                                                break;
-                                        }
-                                    }
-                                @endphp
-                                <a href="{{ $dashboardRoute }}" class="text-white hover:text-secondary-custom block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
-                            @else
-                                <a href="{{ route('login') }}" class="text-white hover:text-secondary-custom block px-3 py-2 rounded-md text-base font-medium">Iniciar Sesión</a>
-                                @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" class="text-white hover:text-secondary-custom block px-3 py-2 rounded-md text-base font-medium">Registrarse</a>
+                                            }
+                                        @endphp
+                                        <a href="{{ $dashboardRoute }}"
+                                            class="nav-link px-4 py-2 text-white hover:text-yellow-300 font-medium transition-all">
+                                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                        </a>
+                                    @else
+                                        <a href="{{ route('login') }}"
+                                            class="px-6 py-3 rounded-xl border-2 border-white text-white hover:bg-white hover:text-blue-600 transition-all duration-300 font-medium">
+                                            <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                                        </a>
+                                        @if (Route::has('register'))
+                                            <a href="{{ route('register') }}"
+                                                class="btn-secondary-custom px-6 py-3 rounded-xl font-medium">
+                                                <i class="fas fa-user-plus mr-2"></i>Registrarse
+                                            </a>
+                                        @endif
+                                    @endauth
                                 @endif
-                            @endauth
-                        @endif
-                    </div>
-                </div>
-            </nav>
-            
-            <!-- Hero Section -->
-            <section class="hero-section text-white py-20">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center hero-content">
-                    <div class="flex justify-center mb-6">
-                        <img src="{{ asset('/images/escudo.png') }}" alt="Escudo Uniautónoma" class="h-32">
-                    </div>
-                    <h1 class="text-4xl md:text-5xl font-bold mb-6">Sistema de Evaluación Docente</h1>
-                    <h2 class="text-2xl md:text-3xl font-semibold mb-4">Corporación Universitaria Autónoma del Cauca</h2>
-                    <p class="text-xl mb-10 max-w-3xl mx-auto">Plataforma para la gestión y evaluación del desempeño docente</p>
-                    
-                    <div class="alert-box mx-auto max-w-3xl mb-8">
-                        <h3 class="font-bold text-lg mb-2"><i class="fas fa-exclamation-triangle mr-2"></i>Importante</h3>
-                        <p>Antes de ingresar al sistema, es necesario cargar el archivo Excel con los datos requeridos para la evaluación docente.</p>
-                    </div>
-                    
-                    <div class="flex flex-col sm:flex-row justify-center gap-4">
-                        @if (Route::has('login'))
-                            @auth
-                                @php
-                                    $dashboardRoute = '/dashboard';
-                                    if(auth()->user()->rol) {
-                                        switch(auth()->user()->rol->nombre) {
-                                            case 'Administrador':
-                                                $dashboardRoute = route('Admin.Dashboard');
-                                                break;
-                                            case 'Decano':
-                                                $dashboardRoute = route('user.index');
-                                                break;
-                                            case 'Docente':
-                                                $dashboardRoute = route('docente.p_docente');
-                                                break;
-                                            default:
-                                                $dashboardRoute = route('dashboard');
-                                                break;
-                                        }
-                                    }
-                                @endphp
-                                <a href="{{ $dashboardRoute }}" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">Ir al Dashboard</a>
-                            @else
-                                <a href="{{ route('cargar-excel') }}" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">
-                                    <i class="fas fa-file-excel mr-2"></i>Cargar Excel
-                                </a>
-                                <a href="{{ route('login') }}" class="px-8 py-3 bg-white hover:bg-gray-100 rounded-lg text-primary-custom font-semibold text-lg transition duration-300 shadow-lg">Iniciar Sesión</a>
-                            @endif
-                        @endif
-                    </div>
-                </div>
-            </section>
-        </header>
-        
-        <main>
-            <!-- Características -->
-            <section class="py-16">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 class="text-3xl font-bold text-center mb-12 text-primary-custom">Características del Sistema</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="bg-white rounded-xl shadow-md p-6 feature-card border-t-4 border-primary-custom">
-                            <div class="text-center">
-                                <i class="fas fa-chart-bar text-4xl text-primary-custom mb-4"></i>
-                                <h3 class="text-xl font-semibold mb-3 text-primary-custom">Evaluación Integral</h3>
-                                <p class="text-gray-600">Sistema completo para la evaluación del desempeño docente, con métricas y criterios establecidos por la institución.</p>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl shadow-md p-6 feature-card border-t-4 border-primary-custom">
-                            <div class="text-center">
-                                <i class="fas fa-users text-4xl text-primary-custom mb-4"></i>
-                                <h3 class="text-xl font-semibold mb-3 text-primary-custom">Roles Específicos</h3>
-                                <p class="text-gray-600">Diferentes niveles de acceso para administradores, decanos, coordinadores y docentes, con funcionalidades adaptadas a cada rol.</p>
-                            </div>
-                        </div>
-                        <div class="bg-white rounded-xl shadow-md p-6 feature-card border-t-4 border-primary-custom">
-                            <div class="text-center">
-                                <i class="fas fa-file-alt text-4xl text-primary-custom mb-4"></i>
-                                <h3 class="text-xl font-semibold mb-3 text-primary-custom">Informes y Estadísticas</h3>
-                                <p class="text-gray-600">Generación de reportes detallados y visualización de estadísticas para el seguimiento y mejora continua del desempeño docente.</p>
-                            </div>
+                        <div class="md:hidden flex items-center">
+                            <button id="mobile-menu-button"
+                                class="text-white hover:text-yellow-300 focus:outline-none p-2">
+                                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </section>
-            
-            <!-- Proceso de Evaluación -->
-            <section class="py-16 bg-gray-100">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 class="text-3xl font-bold text-center mb-12 text-primary-custom">Proceso de Evaluación Docente</h2>
-                    
-                    <div class="space-y-6">
-                        <div class="bg-white p-8 rounded-xl shadow-md border-l-4 border-primary-custom">
-                            <h3 class="text-xl font-semibold mb-2 text-primary-custom"><span class="text-2xl font-bold text-secondary-custom mr-2">1.</span> Carga de Datos</h3>
-                            <p class="text-gray-600">El primer paso es cargar el archivo Excel con la información de docentes, estudiantes y programas académicos para inicializar el sistema.</p>
-                        </div>
-                        
-                        <div class="bg-white p-8 rounded-xl shadow-md border-l-4 border-primary-custom">
-                            <h3 class="text-xl font-semibold mb-2 text-primary-custom"><span class="text-2xl font-bold text-secondary-custom mr-2">2.</span> Evaluación por Estudiantes</h3>
-                            <p class="text-gray-600">Los estudiantes realizan la evaluación de sus docentes según los criterios establecidos por la institución.</p>
-                        </div>
-                        
-                        <div class="bg-white p-8 rounded-xl shadow-md border-l-4 border-primary-custom">
-                            <h3 class="text-xl font-semibold mb-2 text-primary-custom"><span class="text-2xl font-bold text-secondary-custom mr-2">3.</span> Análisis de Resultados</h3>
-                            <p class="text-gray-600">Decanos y coordinadores analizan los resultados de las evaluaciones para identificar fortalezas y áreas de mejora.</p>
-                        </div>
-                        
-                        <div class="bg-white p-8 rounded-xl shadow-md border-l-4 border-primary-custom">
-                            <h3 class="text-xl font-semibold mb-2 text-primary-custom"><span class="text-2xl font-bold text-secondary-custom mr-2">4.</span> Plan de Mejoramiento</h3>
-                            <p class="text-gray-600">Se establecen planes de mejoramiento para los docentes que lo requieran, con seguimiento y apoyo institucional.</p>
-                        </div>
-                        
-                        <div class="bg-white p-8 rounded-xl shadow-md border-l-4 border-primary-custom">
-                            <h3 class="text-xl font-semibold mb-2 text-primary-custom"><span class="text-2xl font-bold text-secondary-custom mr-2">5.</span> Seguimiento Continuo</h3>
-                            <p class="text-gray-600">Monitoreo constante del desempeño docente para garantizar la calidad educativa en la institución.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Llamada a la acción -->
-            <section class="py-16">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h2 class="text-3xl font-bold mb-4 text-primary-custom">¿Listo para comenzar?</h2>
-                    <p class="text-xl mb-10 text-gray-600 max-w-3xl mx-auto">Accede al sistema de evaluación docente de la Corporación Universitaria Autónoma del Cauca</p>
+            </div>
+
+            <!-- Mobile menu mejorado -->
+            <div id="mobile-menu" class="hidden md:hidden bg-primary-custom border-t border-blue-400">
+                <div class="px-4 pt-4 pb-6 space-y-3">
                     @if (Route::has('login'))
                         @auth
                             @php
                                 $dashboardRoute = '/dashboard';
-                                if(auth()->user()->rol) {
-                                    switch(auth()->user()->rol->nombre) {
+                                if (auth()->user()->rol) {
+                                    switch (auth()->user()->rol->nombre) {
                                         case 'Administrador':
                                             $dashboardRoute = route('Admin.Dashboard');
                                             break;
@@ -328,36 +405,329 @@
                                     }
                                 }
                             @endphp
-                            <a href="{{ $dashboardRoute }}" class="inline-block px-8 py-3 bg-primary-custom hover:bg-blue-900 rounded-lg text-white font-semibold transition duration-300 shadow-md w-full sm:w-auto">Ir al Dashboard</a>
+                            <a href="{{ $dashboardRoute }}"
+                                class="block px-4 py-3 rounded-lg text-white hover:bg-blue-700 font-medium transition-all">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
                         @else
-                            <div class="flex flex-col sm:flex-row justify-center gap-4 max-w-xs sm:max-w-md mx-auto">
-                                <a href="{{ route('cargar-excel') }}" class="px-8 py-3 bg-secondary-custom hover:bg-yellow-400 rounded-lg text-primary-custom font-semibold transition duration-300 shadow-md w-full sm:w-auto">
-                                    <i class="fas fa-file-excel mr-2"></i>Cargar Excel
+                            <a href="{{ route('login') }}"
+                                class="block px-4 py-3 rounded-lg text-white hover:bg-blue-700 font-medium transition-all">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                            </a>
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}"
+                                    class="block px-4 py-3 rounded-lg text-white hover:bg-blue-700 font-medium transition-all">
+                                    <i class="fas fa-user-plus mr-2"></i>Registrarse
                                 </a>
-                                <a href="{{ route('login') }}" class="px-8 py-3 bg-primary-custom hover:bg-blue-900 text-white rounded-lg font-semibold transition duration-300 shadow-md w-full sm:w-auto">Iniciar Sesión</a>
-                            </div>
+                            @endif
                         @endauth
                     @endif
                 </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section mejorado -->
+        <section class="hero-section text-white py-24 md:py-32">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center hero-content">
+                <div class="flex justify-center mb-8">
+                    <div class="relative">
+                        <img src="{{ asset('/images/escudo.png') }}" alt="Escudo Uniautónoma"
+                            class="h-36 md:h-40 floating-icon">
+                        <div class="absolute inset-0 bg-white opacity-20 rounded-full blur-xl"></div>
+                    </div>
+                </div>
+
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                    Sistema de <span class="text-yellow-300">Evaluación</span> Docente
+                </h1>
+
+                <h2 class="text-2xl md:text-3xl font-semibold mb-6 text-blue-100">
+                    Corporación Universitaria Autónoma del Cauca
+                </h2>
+
+                <p class="text-xl md:text-2xl mb-12 max-w-4xl mx-auto text-blue-100 leading-relaxed">
+                    Plataforma moderna para la gestión integral y evaluación del desempeño docente
+                </p>
+
+                <!-- Alerta de Excel rediseñada -->
+                <div class="alert-excel">
+                    <div class="alert-excel-content">
+                        <div class="flex items-center justify-center mb-4">
+                            <div class="bg-orange-500 rounded-full p-3 mr-4">
+                                <i class="fas fa-file-excel text-white text-2xl"></i>
+                            </div>
+                            <h3 class="font-bold text-2xl text-orange-900">
+                                ¡Paso Importante!
+                            </h3>
+                        </div>
+                        <p class="text-lg text-orange-800 font-medium leading-relaxed">
+                            Para comenzar a usar el sistema, primero necesitas cargar el archivo Excel con los datos de
+                            docentes, estudiantes y programas académicos.
+                        </p>
+                        <div class="mt-6 flex justify-center">
+                            <div
+                                class="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-full text-sm font-medium">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Requisito obligatorio para el funcionamiento
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción mejorados -->
+                <div class="flex flex-col sm:flex-row justify-center gap-6 mt-12">
+                    @if (Route::has('login'))
+                        @auth
+                            @php
+                                $dashboardRoute = '/dashboard';
+                                if (auth()->user()->rol) {
+                                    switch (auth()->user()->rol->nombre) {
+                                        case 'Administrador':
+                                            $dashboardRoute = route('Admin.Dashboard');
+                                            break;
+                                        case 'Decano':
+                                            $dashboardRoute = route('user.index');
+                                            break;
+                                        case 'Docente':
+                                            $dashboardRoute = route('docente.p_docente');
+                                            break;
+                                        default:
+                                            $dashboardRoute = route('dashboard');
+                                            break;
+                                    }
+                                }
+                            @endphp
+                            <a href="{{ $dashboardRoute }}"
+                                class="btn-secondary-custom px-10 py-4 rounded-2xl font-bold text-lg transition-all transform hover:scale-105">
+                                <i class="fas fa-tachometer-alt mr-3"></i>Ir al Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('cargar-excel') }}"
+                                class="btn-secondary-custom px-10 py-4 rounded-2xl font-bold text-lg transition-all transform hover:scale-105">
+                                <i class="fas fa-file-excel mr-3"></i>Cargar Archivo Excel
+                            </a>
+                            <a href="{{ route('login') }}"
+                                class="glass-card px-10 py-4 rounded-2xl text-white font-bold text-lg transition-all transform hover:scale-105 hover:bg-white hover:text-blue-600">
+                                <i class="fas fa-sign-in-alt mr-3"></i>Iniciar Sesión
+                            </a>
+                        @endif
+                        @endif
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <main>
+            <!-- Características mejoradas -->
+            <section class="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-4">
+                            Características del Sistema
+                        </h2>
+                        <div class="section-divider mb-8"></div>
+                        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                            Una plataforma completa diseñada para optimizar el proceso de evaluación docente
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-blue-500">
+                            <div class="text-center">
+                                <div
+                                    class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                                    <i class="fas fa-chart-bar text-3xl text-white"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Evaluación Integral</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Sistema completo con métricas avanzadas y criterios establecidos institucionalmente para
+                                    una evaluación objetiva y detallada.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-amber-500">
+                            <div class="text-center">
+                                <div
+                                    class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                                    <i class="fas fa-users text-3xl text-white"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Roles Específicos</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Diferentes niveles de acceso personalizados para administradores, decanos, coordinadores
+                                    y docentes con funcionalidades adaptadas.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-emerald-500">
+                            <div class="text-center">
+                                <div
+                                    class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                                    <i class="fas fa-file-alt text-3xl text-white"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Informes Avanzados</h3>
+                                <p class="text-gray-600 leading-relaxed">
+                                    Generación automática de reportes detallados con visualizaciones interactivas para el
+                                    seguimiento y mejora continua.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Llamada a la acción mejorada -->
+            <section class="cta-section py-20 relative">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <div class="mb-12">
+                        <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">
+                            ¿Listo para Comenzar?
+                        </h2>
+                        <div class="section-divider mb-8"></div>
+                        <p class="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+                            Únete al futuro de la evaluación docente con nuestra plataforma innovadora de la Corporación
+                            Universitaria Autónoma del Cauca
+                        </p>
+                    </div>
+
+                    <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto">
+                        @if (Route::has('login'))
+                            @auth
+                                @php
+                                    $dashboardRoute = '/dashboard';
+                                    if (auth()->user()->rol) {
+                                        switch (auth()->user()->rol->nombre) {
+                                            case 'Administrador':
+                                                $dashboardRoute = route('Admin.Dashboard');
+                                                break;
+                                            case 'Decano':
+                                                $dashboardRoute = route('user.index');
+                                                break;
+                                            case 'Docente':
+                                                $dashboardRoute = route('docente.p_docente');
+                                                break;
+                                            default:
+                                                $dashboardRoute = route('dashboard');
+                                                break;
+                                        }
+                                    }
+                                @endphp
+                                <div class="text-center">
+                                    <div
+                                        class="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                                        <i class="fas fa-check text-3xl text-green-600"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-4">¡Bienvenido de nuevo!</h3>
+                                    <p class="text-gray-600 mb-8">Accede a tu panel de control personalizado</p>
+                                    <a href="{{ $dashboardRoute }}"
+                                        class="btn-primary-custom px-12 py-4 rounded-2xl font-bold text-xl inline-block">
+                                        <i class="fas fa-tachometer-alt mr-3"></i>Ir al Dashboard
+                                    </a>
+                                </div>
+                            @else
+                                <div class="grid md:grid-cols-2 gap-8 items-center">
+                                    <div class="text-center md:text-left">
+                                        <div
+                                            class="bg-orange-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto md:mx-0 mb-6">
+                                            <i class="fas fa-file-excel text-3xl text-orange-600"></i>
+                                        </div>
+                                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Paso 1: Cargar Datos</h3>
+                                        <p class="text-gray-600 mb-6">Comienza cargando el archivo Excel con la información
+                                            necesaria</p>
+                                        <a href="{{ route('cargar-excel') }}"
+                                            class="btn-secondary-custom px-8 py-3 rounded-xl font-bold text-lg inline-block w-full md:w-auto">
+                                            <i class="fas fa-file-excel mr-2"></i>Cargar Excel
+                                        </a>
+                                    </div>
+
+                                    <div class="text-center md:text-left">
+                                        <div
+                                            class="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto md:mx-0 mb-6">
+                                            <i class="fas fa-sign-in-alt text-3xl text-blue-600"></i>
+                                        </div>
+                                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Paso 2: Iniciar Sesión</h3>
+                                        <p class="text-gray-600 mb-6">Accede con tus credenciales para comenzar a usar el
+                                            sistema</p>
+                                        <a href="{{ route('login') }}"
+                                            class="btn-primary-custom px-8 py-3 rounded-xl font-bold text-lg inline-block w-full md:w-auto">
+                                            <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                                        </a>
+                                    </div>
+                                </div>
+                            @endauth
+                        @endif
+                    </div>
+                </div>
             </section>
         </main>
-        
-        <footer class="bg-primary-custom text-white py-6">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <div class="flex justify-center items-center mb-4">
-                    <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma" class="h-10 mr-3">
-                    <span class="text-xl font-semibold">Corporación Universitaria Autónoma del Cauca</span>
+
+        <!-- Footer mejorado -->
+        <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <div class="flex justify-center items-center mb-8">
+                        <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma" class="h-12 mr-4">
+                        <div class="text-left">
+                            <h3 class="text-2xl font-bold">Corporación Universitaria Autónoma del Cauca</h3>
+                            <p class="text-gray-300">Sistema de Evaluación Docente</p>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-700 pt-8">
+                        <p class="text-gray-300">
+                            &copy; {{ date('Y') }} Sistema de Evaluación Docente. Todos los derechos reservados.
+                        </p>
+                        <p class="text-gray-400 mt-2">
+                            Desarrollado con <i class="fas fa-heart text-red-500"></i> para la excelencia educativa
+                        </p>
+                    </div>
                 </div>
-                <p>&copy; {{ date('Y') }} Sistema de Evaluación Docente. Todos los derechos reservados.</p>
             </div>
         </footer>
 
         <script>
-            // Toggle mobile menu
+            // Toggle mobile menu con animación mejorada
             document.getElementById('mobile-menu-button').addEventListener('click', function() {
                 const menu = document.getElementById('mobile-menu');
+                const button = this;
+
                 menu.classList.toggle('hidden');
+
+                // Cambiar icono del botón
+                const icon = button.querySelector('svg path');
+                if (menu.classList.contains('hidden')) {
+                    icon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                } else {
+                    icon.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+                }
             });
+
+            // Animación suave para cards al hacer scroll
+            const observeCards = () => {
+                const cards = document.querySelectorAll('.feature-card, .process-step');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }
+                    });
+                }, {
+                    threshold: 0.1
+                });
+
+                cards.forEach(card => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    observer.observe(card);
+                });
+            };
+
+            // Ejecutar cuando el DOM esté listo
+            document.addEventListener('DOMContentLoaded', observeCards);
         </script>
     </body>
-</html>
+
+    </html>
