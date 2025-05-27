@@ -171,26 +171,27 @@ Frontend_backend_laravel_blade_evaluacion_docente/
    - Crear una base de datos MySQL llamada `evaluacion_docentes`
    - Editar el archivo `.env` con tus credenciales de base de datos:
      ```
-     DB_CONNECTION=mysql
-     DB_HOST=127.0.0.1
-     DB_PORT=3306
-     DB_DATABASE=evaluacion_docentes
-     DB_USERNAME=tu_usuario
-     DB_PASSWORD=tu_contraseña
+      DB_CONNECTION=mysql
+      DB_HOST=127.0.0.1
+      DB_PORT=3306
+      DB_DATABASE=evaluacion_docentes
+      DB_USERNAME=root
+      DB_PASSWORD=
      ```
 
-6. **Configurar la base de datos** 💾:
-
-   **Correr las migraciones y seeders de Laravel**
+6. **Correr las migraciones y seeders de Laravel**💾:
    ```bash
    php artisan migrate
    php artisan migrate:fresh --seed
    ```
+
 7. **Instalar la base de datos**:
 
-   **Ahora en phpMyAdmin importar la base de datos** 
+   **Ahora en phpMyAdmin importar la base de datos que se encuentra en**:
 
-![phpMyAdmin](public/images/img_install/phpMyAdmin.png)
+  [Base de datos del proyecto](database/sql/evaluacion_docentes.sql)
+
+  ![phpMyAdmin](public/images/img_install/phpMyAdmin.png)
 
 8. **Compilar los estilos para tailwind css** 🎨:
    ```bash
