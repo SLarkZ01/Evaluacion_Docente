@@ -65,59 +65,96 @@ El **Proyecto Evaluación Docente** optimiza el proceso de evaluación de los do
 
 ## 🏗️ Estructura del Proyecto
 
-El proyecto utiliza la estructura estándar de Laravel, con algunas particularidades:
+El proyecto utiliza la estructura estándar de Laravel 10.x, optimizada para el sistema de evaluación docente:
 
 ```plaintext
-Frontend_backend_laravel_blade_evaluacion_docente/
+Evaluacion_Docente/
 ├─ app/                      # Lógica principal de la aplicación
 │  ├─ Console/               # Comandos Artisan personalizados
-│  ├─ Exceptions/            # Manejadores de excepciones
-│  ├─ Http/                  # Controladores, Middleware, Requests
-│  ├─ Models/                # Modelos Eloquent (ActaCompromiso, ProcesoSancion, etc.)
-│  ├─ Providers/             # Service Providers
-│  ├─ Services/              # Servicios adicionales
-│  └─ View/                  # Componentes de vistas
+│  ├─ Exceptions/            # Manejadores de excepciones personalizados
+│  ├─ Http/                  # Capa HTTP de la aplicación
+│  │  ├─ Controllers/        # Controladores (Admin, Decano, Docente)
+│  │  ├─ Middleware/         # Middleware personalizado
+│  │  └─ Requests/           # Form Requests para validación
+│  ├─ Models/                # Modelos Eloquent del sistema
+│  │  ├─ ActaCompromiso.php  # Modelo para actas de compromiso
+│  │  ├─ Coordinacion.php    # Modelo de coordinaciones
+│  │  ├─ Docente.php         # Modelo de docentes
+│  │  ├─ Estudiante.php      # Modelo de estudiantes
+│  │  ├─ Facultad.php        # Modelo de facultades
+│  │  ├─ ProcesoSancion.php  # Modelo para procesos disciplinarios
+│  │  ├─ Programa.php        # Modelo de programas académicos
+│  │  ├─ Rol.php             # Modelo de roles de usuario
+│  │  ├─ User.php            # Modelo principal de usuarios
+│  │  └─ Usuario.php         # Modelo extendido de usuarios
+│  ├─ Providers/             # Service Providers de Laravel
+│  └─ View/                  # Componentes de vista personalizados
 │
-├─ bootstrap/                # Archivos de inicio de Laravel
-├─ config/                   # Configuraciones
-├─ database/                 # Migraciones, seeders y SQL
-│  ├─ migrations/            # Estructura de tablas
-│  ├─ seeders/               # Datos iniciales
+├─ bootstrap/                # Archivos de arranque de Laravel
+├─ config/                   # Archivos de configuración
+├─ database/                 # Gestión de base de datos
+│  ├─ factories/             # Factories para testing
+│  ├─ migrations/            # Migraciones de base de datos
+│  ├─ seeders/               # Seeders para datos iniciales
 │  └─ sql/                   # Scripts SQL y procedimientos almacenados
 │
-├─ Documentacion/            # Documentación del proyecto
+├─ Documentacion/            # Documentación técnica del proyecto
 │  ├─ Proyecto_de_Evaluación_Docente.pdf
-│  └─ casos_uso_historias_usuario.md
+│  ├─ Definición_del_Proyecto___Desarrollo_de_aplicaciones_web.pdf
+│  └─ Plantilla_de_Definición_del_Proyecto___Base_de_Datos_II.pdf
 │
-├─ public/                   # Archivos públicos (CSS, JS, imágenes)
-│  ├─ css/                   # Hojas de estilo
-│  ├─ js/                    # JavaScript
-│  └─ images/                # Imágenes y recursos gráficos
+├─ public/                   # Archivos públicos accesibles vía web
+│  ├─ build/                 # Assets compilados por Vite
+│  ├─ css/                   # Hojas de estilo personalizadas
+│  ├─ fonts/                 # Fuentes tipográficas
+│  ├─ images/                # Imágenes y recursos gráficos
+│  ├─ js/                    # JavaScript personalizado
+│  ├─ sass/                  # Archivos SASS/SCSS
+│  └─ index.php              # Punto de entrada de la aplicación
 │
-├─ resources/                # Recursos de la aplicación
-│  ├─ css/                   # Estilos fuente
-│  ├─ js/                    # JavaScript fuente
-│  └─ views/                 # Vistas Blade
-│      ├─ Actas/             # Vistas de actas de compromiso
-│      ├─ Administrador/     # Vistas del panel de administrador
-│      ├─ components/        # Componentes reutilizables
+├─ resources/                # Recursos de desarrollo
+│  ├─ css/                   # Archivos CSS fuente
+│  ├─ js/                    # Archivos JavaScript fuente
+│  └─ views/                 # Plantillas Blade
+│      ├─ Administrador/     # Vistas del panel administrativo
+│      ├─ auth/              # Vistas de autenticación
+│      ├─ components/        # Componentes Blade reutilizables
 │      ├─ Decano/            # Vistas del panel de decano/coordinador
-│      ├─ Docente/           # Vistas del panel de docente
-│      ├─ layouts/           # Plantillas base
-│      └─ Login/             # Vistas de autenticación
+│      ├─ Docente/           # Vistas del panel docente
+│      ├─ layouts/           # Layouts base de la aplicación
+│      ├─ profile/           # Vistas de perfil de usuario
+│      └─ *.blade.php        # Vistas generales (dashboard, importar, etc.)
 │
 ├─ routes/                   # Definición de rutas
-│  ├─ api.php                # Rutas de API
-│  └─ web.php                # Rutas web
+│  ├─ api.php                # Rutas de API REST
+│  └─ web.php                # Rutas web principales
 │
-├─ storage/                  # Almacenamiento (logs, cache, archivos)
-├─ tests/                    # Pruebas automatizadas
-├─ vendor/                   # Dependencias (gestionadas por Composer)
-├─ .env                      # Configuración de entorno
-├─ composer.json             # Dependencias de PHP
-├─ package.json              # Dependencias de Node.js
-└─ README.md                 # Este archivo
+├─ storage/                  # Almacenamiento interno
+│  ├─ app/                   # Archivos de aplicación
+│  ├─ framework/             # Archivos del framework
+│  └─ logs/                  # Logs del sistema
+│
+├─ tests/                    # Suite de pruebas automatizadas
+├─ vendor/                   # Dependencias de Composer
+├─ node_modules/             # Dependencias de Node.js
+│
+├─ .env                      # Variables de entorno (local)
+├─ .env.example              # Plantilla de variables de entorno
+├─ .gitignore                # Archivos ignorados por Git
+├─ composer.json             # Dependencias y configuración de PHP
+├─ package.json              # Dependencias y scripts de Node.js
+├─ tailwind.config.js        # Configuración de Tailwind CSS
+├─ vite.config.js            # Configuración de Vite (build tool)
+└─ README.md                 # Documentación principal del proyecto
 ```
+
+### 📁 Directorios Principales
+
+- **app/Models/**: Contiene los modelos Eloquent que representan las entidades del sistema de evaluación docente
+- **resources/views/**: Organizadas por roles (Administrador, Decano, Docente) para facilitar el mantenimiento
+- **database/sql/**: Scripts SQL específicos y procedimientos almacenados para funcionalidades avanzadas
+- **public/**: Assets públicos optimizados con Vite para mejor rendimiento
+- **Documentacion/**: Documentación técnica y plantillas del proyecto académico
 
 ---
 
