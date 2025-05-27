@@ -514,6 +514,10 @@
 
                 <!-- Botones de acción mejorados -->
                 <div class="flex flex-col sm:flex-row justify-center gap-6 mt-12">
+                    <a href="{{ route('cargar-excel') }}"
+                        class="btn-secondary-custom px-10 py-4 rounded-2xl font-bold text-lg transition-all transform hover:scale-105">
+                        <i class="fas fa-file-excel mr-3"></i>Cargar Archivo Excel
+                    </a>
                     @if (Route::has('login'))
                         @auth
                             @php
@@ -540,221 +544,217 @@
                                 <i class="fas fa-tachometer-alt mr-3"></i>Ir al Dashboard
                             </a>
                         @else
-                            <a href="{{ route('cargar-excel') }}"
-                                class="btn-secondary-custom px-10 py-4 rounded-2xl font-bold text-lg transition-all transform hover:scale-105">
-                                <i class="fas fa-file-excel mr-3"></i>Cargar Archivo Excel
-                            </a>
                             <a href="{{ route('login') }}"
                                 class="glass-card px-10 py-4 rounded-2xl text-white font-bold text-lg transition-all transform hover:scale-105 hover:bg-white hover:text-blue-600">
                                 <i class="fas fa-sign-in-alt mr-3"></i>Iniciar Sesión
                             </a>
                         @endif
-                        @endif
-                    </div>
+                    @endif
                 </div>
-            </section>
-        </header>
+            </div>
+        </section>
+    </header>
 
-        <main>
-            <!-- Características mejoradas -->
-            <section class="py-12 sm:py-20 bg-gradient-to-br from-slate-50 to-blue-50">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="text-center mb-10 sm:mb-16">
-                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-4">
-                            Características del Sistema
-                        </h2>
-                        <div class="section-divider mb-6 sm:mb-8"></div>
-                        <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
-                            Una plataforma completa diseñada para optimizar el proceso de evaluación docente
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                        <div class="feature-card rounded-2xl shadow-xl p-6 sm:p-8 border-t-4 border-blue-500">
-                            <div class="text-center">
-                                <div
-                                    class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                                    <i class="fas fa-chart-bar text-2xl sm:text-3xl text-white"></i>
-                                </div>
-                                <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-gray-800">Evaluación Integral
-                                </h3>
-                                <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
-                                    Sistema completo con métricas avanzadas y criterios establecidos institucionalmente para
-                                    una evaluación objetiva y detallada.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-amber-500">
-                            <div class="text-center">
-                                <div
-                                    class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                                    <i class="fas fa-users text-3xl text-white"></i>
-                                </div>
-                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Roles Específicos</h3>
-                                <p class="text-gray-600 leading-relaxed">
-                                    Diferentes niveles de acceso personalizados para administradores, decanos, coordinadores
-                                    y docentes con funcionalidades adaptadas.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-emerald-500">
-                            <div class="text-center">
-                                <div
-                                    class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                                    <i class="fas fa-file-alt text-3xl text-white"></i>
-                                </div>
-                                <h3 class="text-2xl font-bold mb-4 text-gray-800">Informes Avanzados</h3>
-                                <p class="text-gray-600 leading-relaxed">
-                                    Generación automática de reportes detallados con visualizaciones interactivas para el
-                                    seguimiento y mejora continua.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Llamada a la acción mejorada -->
-            <section class="cta-section py-12 sm:py-20 relative">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-                    <div class="mb-8 sm:mb-12">
-                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-4 sm:mb-6">
-                            ¿Listo para Comenzar?
-                        </h2>
-                        <div class="section-divider mb-6 sm:mb-8"></div>
-                        <p class="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-2">
-                            Únete al futuro de la evaluación docente con nuestra plataforma innovadora de la Corporación
-                            Universitaria Autónoma del Cauca
-                        </p>
-                    </div>
-
-                    <div
-                        class="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-8 md:p-12 max-w-4xl mx-auto">
-                        @if (Route::has('login'))
-                            @auth
-                                @php
-                                    $dashboardRoute = '/dashboard';
-                                    if (auth()->user()->rol) {
-                                        switch (auth()->user()->rol->nombre) {
-                                            case 'Administrador':
-                                                $dashboardRoute = route('Admin.Dashboard');
-                                                break;
-                                            case 'Decano':
-                                                $dashboardRoute = route('user.index');
-                                                break;
-                                            case 'Docente':
-                                                $dashboardRoute = route('docente.p_docente');
-                                                break;
-                                            default:
-                                                $dashboardRoute = route('dashboard');
-                                                break;
-                                        }
-                                    }
-                                @endphp
-                                <div class="text-center">
-                                    <div
-                                        class="bg-green-100 rounded-full w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
-                                        <i class="fas fa-check text-2xl sm:text-3xl text-green-600"></i>
-                                    </div>
-                                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">¡Bienvenido de nuevo!
-                                    </h3>
-                                    <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Accede a tu panel de control
-                                        personalizado</p>
-                                    <a href="{{ $dashboardRoute }}"
-                                        class="btn-primary-custom px-8 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl inline-block">
-                                        <i class="fas fa-tachometer-alt mr-3"></i>Ir al Dashboard
-                                    </a>
-                                </div>
-                            @else
-                                <div class="grid md:grid-cols-2 gap-8 items-center">
-                                    <div class="text-center md:text-left">
-                                        <div
-                                            class="bg-orange-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto md:mx-0 mb-6">
-                                            <i class="fas fa-file-excel text-3xl text-orange-600"></i>
-                                        </div>
-                                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Paso 1: Cargar Datos</h3>
-                                        <p class="text-gray-600 mb-6">Comienza cargando el archivo Excel con la información
-                                            necesaria</p>
-                                        <a href="{{ route('cargar-excel') }}"
-                                            class="btn-secondary-custom px-8 py-3 rounded-xl font-bold text-lg inline-block w-full md:w-auto">
-                                            <i class="fas fa-file-excel mr-2"></i>Cargar Excel
-                                        </a>
-                                    </div>
-
-                                    <div class="text-center md:text-left">
-                                        <div
-                                            class="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto md:mx-0 mb-6">
-                                            <i class="fas fa-sign-in-alt text-3xl text-blue-600"></i>
-                                        </div>
-                                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Paso 2: Iniciar Sesión</h3>
-                                        <p class="text-gray-600 mb-6">Accede con tus credenciales para comenzar a usar el
-                                            sistema</p>
-                                        <a href="{{ route('login') }}"
-                                            class="btn-primary-custom px-8 py-3 rounded-xl font-bold text-lg inline-block w-full md:w-auto">
-                                            <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
-                                        </a>
-                                    </div>
-                                </div>
-                            @endauth
-                        @endif
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Footer mejorado -->
-        <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-8 sm:py-12">
+    <main>
+        <!-- Características mejoradas -->
+        <section class="py-12 sm:py-20 bg-gradient-to-br from-slate-50 to-blue-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center">
-                    <div class="flex flex-col sm:flex-row justify-center items-center mb-6 sm:mb-8">
-                        <img src="{{ asset('images/logoblanco.png') }}" alt="Logo Uniautónoma"
-                            class="h-18 sm:h-20 mb-4 sm:mb-0 sm:mr-4">
-                        <div class="text-center sm:text-left">
-                            <h3 class="text-xl sm:text-2xl font-bold">Corporación Universitaria Autónoma del Cauca</h3>
-                            <p class="text-gray-300 text-sm sm:text-base">Sistema de Evaluación Docente</p>
+                <div class="text-center mb-10 sm:mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-4">
+                        Características del Sistema
+                    </h2>
+                    <div class="section-divider mb-6 sm:mb-8"></div>
+                    <p class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
+                        Una plataforma completa diseñada para optimizar el proceso de evaluación docente
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                    <div class="feature-card rounded-2xl shadow-xl p-6 sm:p-8 border-t-4 border-blue-500">
+                        <div class="text-center">
+                            <div
+                                class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-full w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                                <i class="fas fa-chart-bar text-2xl sm:text-3xl text-white"></i>
+                            </div>
+                            <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-gray-800">Evaluación Integral
+                            </h3>
+                            <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
+                                Sistema completo con métricas avanzadas y criterios establecidos institucionalmente para
+                                una evaluación objetiva y detallada.
+                            </p>
                         </div>
                     </div>
 
-                    <div class="border-t border-gray-700 pt-8">
-                        <p class="text-gray-300">
-                            &copy; {{ date('Y') }} Sistema de Evaluación Docente. Todos los derechos reservados.
-                        </p>
-                        <p class="text-gray-400 mt-2">
-                            Desarrollado con <i class="fas fa-heart text-red-500"></i> para la excelencia educativa
-                        </p>
+                    <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-amber-500">
+                        <div class="text-center">
+                            <div
+                                class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-users text-3xl text-white"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4 text-gray-800">Roles Específicos</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                Diferentes niveles de acceso personalizados para administradores, decanos, coordinadores
+                                y docentes con funcionalidades adaptadas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="feature-card rounded-2xl shadow-xl p-8 border-t-4 border-emerald-500">
+                        <div class="text-center">
+                            <div
+                                class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-file-alt text-3xl text-white"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4 text-gray-800">Informes Avanzados</h3>
+                            <p class="text-gray-600 leading-relaxed">
+                                Generación automática de reportes detallados con visualizaciones interactivas para el
+                                seguimiento y mejora continua.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </footer>
+        </section>
 
-        <script>
-            // Animación suave para cards al hacer scroll
-            document.addEventListener('DOMContentLoaded', function() {
-                const observeCards = () => {
-                    const cards = document.querySelectorAll('.feature-card, .process-step');
-                    const observer = new IntersectionObserver((entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.style.opacity = '1';
-                                entry.target.style.transform = 'translateY(0)';
-                            }
-                        });
-                    }, {
-                        threshold: 0.1
-                    });
+        <!-- Llamada a la acción mejorada -->
+        <section class="cta-section py-12 sm:py-20 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                <div class="mb-8 sm:mb-12">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold gradient-text mb-4 sm:mb-6">
+                        ¿Listo para Comenzar?
+                    </h2>
+                    <div class="section-divider mb-6 sm:mb-8"></div>
+                    <p class="text-lg sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed px-2">
+                        Únete al futuro de la evaluación docente con nuestra plataforma innovadora de la Corporación
+                        Universitaria Autónoma del Cauca
+                    </p>
+                </div>
 
-                    cards.forEach(card => {
-                        card.style.opacity = '0';
-                        card.style.transform = 'translateY(20px)';
-                        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                        observer.observe(card);
-                    });
-                };
-                observeCards();
+                <div
+                    class="bg-white rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl p-6 sm:p-8 md:p-12 max-w-4xl mx-auto">
+                    @if (Route::has('login'))
+                        @auth
+                            @php
+                                $dashboardRoute = '/dashboard';
+                                if (auth()->user()->rol) {
+                                    switch (auth()->user()->rol->nombre) {
+                                        case 'Administrador':
+                                            $dashboardRoute = route('Admin.Dashboard');
+                                            break;
+                                        case 'Decano':
+                                            $dashboardRoute = route('user.index');
+                                            break;
+                                        case 'Docente':
+                                            $dashboardRoute = route('docente.p_docente');
+                                            break;
+                                        default:
+                                            $dashboardRoute = route('dashboard');
+                                            break;
+                                    }
+                                }
+                            @endphp
+                            <div class="text-center">
+                                <div
+                                    class="bg-green-100 rounded-full w-16 sm:w-20 h-16 sm:h-20 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                                    <i class="fas fa-check text-2xl sm:text-3xl text-green-600"></i>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">¡Bienvenido de nuevo!
+                                </h3>
+                                <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Accede a tu panel de control
+                                    personalizado</p>
+                                <a href="{{ $dashboardRoute }}"
+                                    class="btn-primary-custom px-8 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl inline-block">
+                                    <i class="fas fa-tachometer-alt mr-3"></i>Ir al Dashboard
+                                </a>
+                            </div>
+                        @else
+                            <div class="grid md:grid-cols-2 gap-8 items-center">
+                                <div class="text-center md:text-left">
+                                    <div
+                                        class="bg-orange-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto md:mx-0 mb-6">
+                                        <i class="fas fa-file-excel text-3xl text-orange-600"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Paso 1: Cargar Datos</h3>
+                                    <p class="text-gray-600 mb-6">Comienza cargando el archivo Excel con la información
+                                        necesaria</p>
+                                    <a href="{{ route('cargar-excel') }}"
+                                        class="btn-secondary-custom px-8 py-3 rounded-xl font-bold text-lg inline-block w-full md:w-auto">
+                                        <i class="fas fa-file-excel mr-2"></i>Cargar Excel
+                                    </a>
+                                </div>
+
+                                <div class="text-center md:text-left">
+                                    <div
+                                        class="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto md:mx-0 mb-6">
+                                        <i class="fas fa-sign-in-alt text-3xl text-blue-600"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Paso 2: Iniciar Sesión</h3>
+                                    <p class="text-gray-600 mb-6">Accede con tus credenciales para comenzar a usar el
+                                        sistema</p>
+                                    <a href="{{ route('login') }}"
+                                        class="btn-primary-custom px-8 py-3 rounded-xl font-bold text-lg inline-block w-full md:w-auto">
+                                        <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                                    </a>
+                                </div>
+                            </div>
+                        @endauth
+                    @endif
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer mejorado -->
+    <footer class="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-8 sm:py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <div class="flex flex-col sm:flex-row justify-center items-center mb-6 sm:mb-8">
+                    <img src="{{ asset('images/logoblanco.png') }}" alt="Logo Uniautónoma"
+                        class="h-18 sm:h-20 mb-4 sm:mb-0 sm:mr-4">
+                    <div class="text-center sm:text-left">
+                        <h3 class="text-xl sm:text-2xl font-bold">Corporación Universitaria Autónoma del Cauca</h3>
+                        <p class="text-gray-300 text-sm sm:text-base">Sistema de Evaluación Docente</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-700 pt-8">
+                    <p class="text-gray-300">
+                        &copy; {{ date('Y') }} Sistema de Evaluación Docente. Todos los derechos reservados.
+                    </p>
+                    <p class="text-gray-400 mt-2">
+                        Desarrollado con <i class="fas fa-heart text-red-500"></i> para la excelencia educativa
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animación suave para cards al hacer scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            const observeCards = () => {
+                const cards = document.querySelectorAll('.feature-card, .process-step');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1
             });
-        </script>
-    </body>
 
-    </html>
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        };
+        observeCards();
+    });
+    </script>
+</body>
+
+</html>
