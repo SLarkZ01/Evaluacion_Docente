@@ -5,8 +5,7 @@
     <!-- Encabezado y bienvenida -->
     <div class="header-card animated-card">
         <h1>Panel de Administrador</h1>
-        <p class="text-muted">Bienvenido {{ auth()->user()->name }} al sistema de Evaluación Docente - Panel de Control
-        </p>
+        <p class="text-muted">Bienvenido al sistema de Evaluación Docente - Panel de Control</p>
     </div>
 
     <!-- Tarjetas de estadísticas principales -->

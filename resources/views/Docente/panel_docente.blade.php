@@ -31,7 +31,7 @@
                             </div>
                             <div>
                                 <h6 class="card-title text-muted mb-1">Evaluación Estudiantil</h6>
-                                <h2 class="display-5 fw-bold mb-0">{{$evaluaciones[count($evaluaciones) - 1]->evaluacion_estudiantes}}</h2>
+                                <h2 class="display-5 fw-bold mb-0">{{!empty($evaluaciones) ? $evaluaciones[count($evaluaciones) - 1]->evaluacion_estudiantes : 'N/A'}}</h2>
                                 <p class="card-text text-muted small mb-0 fs-8">Promedio de 45 evaluaciones</p>
                             </div>
                         </div>
@@ -45,7 +45,7 @@
                             </div>
                             <div>
                                 <h6 class="card-title text-muted mb-1">Evaluación Decano</h6>
-                                <h2 class="display-5 fw-bold mb-0">{{$evaluaciones[count($evaluaciones) - 1]->evaluacion_decano}}</h2>
+                                <h2 class="display-5 fw-bold mb-0">{{!empty($evaluaciones) ? $evaluaciones[count($evaluaciones) - 1]->evaluacion_decano : 'N/A'}}</h2>
                                 <p class="card-text text-muted small mb-0 fs-8">Calificación de coordinación</p>
                             </div>
                         </div>
@@ -59,7 +59,7 @@
                             </div>
                             <div>
                                 <h6 class="card-title text-muted mb-1">Autoevaluación</h6>
-                                <h2 class="display-8 fw-bold mb-0 text-warning">{{$evaluaciones[count($evaluaciones) - 1]->autoevaluacion}}</h2>
+                                <h2 class="display-8 fw-bold mb-0 text-warning">{{!empty($evaluaciones) ? $evaluaciones[count($evaluaciones) - 1]->autoevaluacion : 'N/A'}}</h2>
                                 <p class="card-text text-muted small mb-0 fs-8">No has completado tu autoevaluación</p>
                             </div>
                         </div>
@@ -73,7 +73,7 @@
                             </div>
                             <div>
                                 <h6 class="card-title text-muted mb-1">Promedio total </h6>
-                                <h2 class="display-5 fw-bold mb-0">{{$evaluaciones[count($evaluaciones) - 1]->promedio_total}} </h2>
+                                <h2 class="display-5 fw-bold mb-0">{{!empty($evaluaciones) ? $evaluaciones[count($evaluaciones) - 1]->promedio_total : 'N/A'}} </h2>
                                 <p class="card-text text-muted small mb-0 fs-8">Promedio general de evaluaciones</p>
                             </div>
                         </div>

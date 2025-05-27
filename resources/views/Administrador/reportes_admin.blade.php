@@ -1,9 +1,7 @@
 @extends('layouts.principal')
 @section('titulo', 'Panel de Administrador')
 @section('contenido')
-
-
-                    <!-- Encabezado y bienvenida -->
+ <!-- Encabezado y bienvenida -->
                     <div class="header-card animated-card">
                         <h1>Reportes y Estadísticas</h1>
                         <p class="text-muted">Visualización y análisis de datos del sistema de evaluación docente</p>
@@ -512,7 +510,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>        
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

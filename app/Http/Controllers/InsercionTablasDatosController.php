@@ -59,7 +59,7 @@ class InsercionTablasDatosController extends Controller
             ]);
         }
     }
-    public function InsertarCursos(array $datos): void
+    public function InsertarCurso(array $datos): void
     {
         foreach ($datos as $fila) {
 
@@ -354,11 +354,5 @@ class InsercionTablasDatosController extends Controller
                 $fila[4]
             ]);
         }
-    }
-
-    // Alias para compatibilidad con el nombre singular
-    public function InsertarCurso(array $datos): void
-    {
-        $this->InsertarCursos($datos);
     }
 }

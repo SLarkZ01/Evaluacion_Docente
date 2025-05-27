@@ -2,42 +2,7 @@
 @section('title', 'Panel Docente')
 @section('contenido')
 
-<body>
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <!-- Sidebar / Menú lateral -->
-            <div class="col-md-2 sidebar">
-                <div class="text-center py-4">
-                    <div class="avatar-circle mx-auto">
-                        <i class="fas fa-user fa-3x text-white"></i>
-                    </div>
-                    <p class="text-white mt-2">Docente</p>
-                </div>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">
-                            <i class="fas fa-home"></i> Inicio
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="resultados.html">
-                            <i class="fas fa-chart-line"></i> Resultados
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="configuracion.html">
-                            <i class="fas fa-cog"></i> Configuración
-                        </a>
-                    </li>
-                    <li class="nav-item mt-5">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-sign-out-alt"></i> Salir
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Contenido principal -->
+  <!-- Contenido principal -->
             <div class="col-md-10 main-content">
                 <div class="container py-4">
                     <!-- Encabezado mejorado -->
@@ -296,5 +261,4 @@
             // Fin de la inicialización de gráficos
         });
     </script>
-</body>
 @endsection

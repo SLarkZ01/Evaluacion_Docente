@@ -14,48 +14,59 @@ class ActaCompromisoController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+
+
     public function index()
     {
-        
-    $actas = DB::select('CALL GetActasCompromiso()');
 
-    return response()->json([
-        'success' => true,
-        'data' => $actas,
-        'message' => 'Actas de compromiso retrieved successfully'
-    ]);
+    $actasData = DB::select('CALL GetActasCompromiso()');
+    $actas = collect($actasData)->map(function ($acta) {
+        return [
+            'id' => $acta->id,
+            'fecha_generacion' => $acta->fecha_generacion,
+            'nombre_docente' => $acta->nombre_docente,
+            'apellido_docente' => $acta->apellido_docente,
+            'identificacion_docente' => $acta->identificacion_docente,
+            'curso' => $acta->curso,
+            'promedio_total' => $acta->promedio_total,
+            'retroalimentacion' => $acta->retroalimentacion
+        ];
+    });
+
+    return response()->json($actas);
+    
     }
 
-    /**
-     * Display the specified acta de compromiso.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function show($id)
-    {
-        try {
-            $acta = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+    // /**
+    //  * Display the specified acta de compromiso.
+    //  *
+    //  * @param  int  $id
+    //  * @return \Illuminate\Http\JsonResponse
+    //  */
+    // public function show($id)
+    // {
+    //     try {
+    //         $actas = DB::select('CALL GetActasCompromiso()');
             
-            if (empty($acta)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Acta de compromiso not found'
-                ], 404);
-            }
+    //         if (empty($actas)) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Acta de compromiso not found'
+    //             ], 404);
+    //         }
             
-            return response()->json([
-                'success' => true,
-                'data' => $acta[0],
-                'message' => 'Acta de compromiso retrieved successfully'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving acta de compromiso: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'data' => $actas[0],
+    //             'message' => 'Acta de compromiso retrieved successfully'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Error retrieving acta de compromiso: ' . $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     /**
      * Store a newly created acta de compromiso in storage.
@@ -106,6 +117,38 @@ class ActaCompromisoController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'Error al crear el acta de compromiso: ' . $e->getMessage()
+        ], 500);
+    }
+}
+/**
+     * Display a listing of all actas de compromiso.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+
+public function show($id)
+{
+    try {
+        $acta = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+        
+        if (empty($acta)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El acta no fue encontrada'
+            ], 404);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $acta[0],
+            'firma_url' => $acta[0]->firma ? asset('storage/' . $acta[0]->firma) : null
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error viewing acta: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al visualizar el acta'
         ], 500);
     }
 }

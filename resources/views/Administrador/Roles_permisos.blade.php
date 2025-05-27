@@ -1,601 +1,542 @@
 @extends('layouts.principal')
 @section('titulo', 'Panel de Administrador')
 @section('contenido')
-    <div class="container-fluid p-0">
-        <div class="row g-0">
-            <!-- Encabezado -->
-            <div class="header-card animated-card">
-                <h1>Gestión de Roles y Permisos</h1>
-                <p class="text-muted">Administra los usuarios del sistema y sus niveles de acceso</p>
+    <!-- jQuery primero -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Popper.js (requerido para Bootstrap) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+<!-- Font Awesome para los íconos -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        <!-- Encabezado con colores azules cálidos -->
+        <div class="header-card animated-card bg-gradient-primary">
+            <h1><i class="fas fa-users-cog me-3"></i>Gestión de Usuarios y Permisos</h1>
+            <p class="text-light">Administra los usuarios del sistema y sus niveles de acceso</p>
+        </div>
+
+        <!-- Contenedor principal con fondo azul claro -->
+        <div class="col-12 p-4 bg-light-blue rounded-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0 text-primary-dark">
+                    <i class="fas fa-list-alt me-2"></i>Lista de Usuarios
+                </h4>
+                <button class="btn btn-primary-blue" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
+                    <i class="fas fa-plus me-2"></i>Nuevo Usuario
+                </button>
             </div>
 
-            <!-- Pestañas de navegación -->
-            <ul class="nav nav-tabs mb-0" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios"
-                        type="button" role="tab" aria-controls="usuarios" aria-selected="true">
-                        <i class="fas fa-users me-2"></i>Usuarios
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button"
-                        role="tab" aria-controls="roles" aria-selected="false">
-                        <i class="fas fa-user-tag me-2"></i>Roles
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="permisos-tab" data-bs-toggle="tab" data-bs-target="#permisos"
-                        type="button" role="tab" aria-controls="permisos" aria-selected="false">
-                        <i class="fas fa-key me-2"></i>Permisos
-                    </button>
-                </li>
-            </ul>
-
-            <!-- Contenido de las pestañas -->
-            <div class="tab-content" id="myTabContent">
-                <!-- Pestaña de Usuarios -->
-                <div class="tab-pane fade show active" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0">Lista de Usuarios</h5>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
-                            <i class="fas fa-plus me-2"></i>Nuevo Usuario
-                        </button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover datatable table-admin">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Usuario</th>
-                                    <th>Email</th>
-                                    <th>Rol</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (isset($usuarios) && count($usuarios) > 0)
-                                @foreach ($usuarios as $usuario)
-    <tr>
-        <td>{{ $usuario->id_usuario }}</td>
-        <td>{{ $usuario->nombre }} {{ $usuario->apellido }}</td>
-        <td>{{ $usuario->tipo_usuario }}</td>
-        <td>{{ $usuario->correo }}</td>
-        <td>
-            <span class="badge role-badge role-{{ $usuario->tipo_usuario }}">
-                {{ ucfirst($usuario->tipo_usuario) }}
-            </span>
-        </td>
-        <td>
-            <span class="badge {{ $usuario->activo ? 'bg-success' : 'bg-danger' }}">
-                {{ $usuario->activo ? 'Activo' : 'Inactivo' }}
-            </span>
-        </td>
-        <td>
-            <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger btn-action" data-bs-toggle="tooltip" title="Eliminar">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-    </tr>
-@endforeach
-@endif
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Pestaña de Roles -->
-                <div class="tab-pane fade" id="roles" role="tabpanel" aria-labelledby="roles-tab">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0">Roles del Sistema</h5>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoRolModal">
-                            <i class="fas fa-plus me-2"></i>Nuevo Rol
-                        </button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover datatable table-admin">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Descripción</th>
-                                    <th>Usuarios</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td><span class="badge role-badge role-admin">Administrador</span></td>
-                                    <td>Control total del sistema</td>
-                                    <td>5</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-info btn-action" data-bs-toggle="tooltip" title="Ver permisos">
-                                            <i class="fas fa-key"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td><span class="badge role-badge role-decano">Decano</span></td>
-                                    <td>Gestión de departamentos y docentes</td>
-                                    <td>8</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-info btn-action" data-bs-toggle="tooltip" title="Ver permisos">
-                                            <i class="fas fa-key"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td><span class="badge role-badge role-docente">Docente</span></td>
-                                    <td>Acceso a evaluaciones y resultados</td>
-                                    <td>45</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-info btn-action" data-bs-toggle="tooltip" title="Ver permisos">
-                                            <i class="fas fa-key"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Pestaña de Permisos -->
-                <div class="tab-pane fade" id="permisos" role="tabpanel" aria-labelledby="permisos-tab">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0">Permisos del Sistema</h5>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevoPermisoModal">
-                            <i class="fas fa-plus me-2"></i>Nuevo Permiso
-                        </button>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover datatable table-admin">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre</th>
-                                    <th>Descripción</th>
-                                    <th>Módulo</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>ver_dashboard</td>
-                                    <td>Ver panel de control</td>
-                                    <td>Dashboard</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-action" data-bs-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>gestionar_usuarios</td>
-                                    <td>Crear, editar y eliminar usuarios</td>
-                                    <td>Usuarios</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-action" data-bs-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>3</td>
-                                    <td>gestionar_roles</td>
-                                    <td>Crear, editar y eliminar roles</td>
-                                    <td>Roles</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-action" data-bs-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>4</td>
-                                    <td>gestionar_periodos</td>
-                                    <td>Configurar periodos de evaluación</td>
-                                    <td>Periodos</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary btn-action" data-bs-toggle="tooltip" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-action" data-bs-toggle="tooltip" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <!-- Tabla de usuarios con estilo azul -->
+            <div class="table-responsive">
+                <table class="table table-hover datatable table-striped table-blue">
+                    <thead class="bg-primary text-white">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody><!-- Iterar sobre los usuarios y mostrar en la tabla -->
+                         @if(isset($usuarios) && count($usuarios) > 0)
+                        @foreach($usuarios as $usuario)
+                        <tr>
+                            <td>{{ $usuario->id_usuario }}</td>
+                            <td>{{ $usuario->nombre }} {{ $usuario->apellido }}</td>
+                            <td>{{ $usuario->tipo_usuario }}</td>
+                            <td>{{ $usuario->correo }}</td>
+                            <td>
+                                <span class="badge role-badge role-{{ strtolower($usuario->tipo_usuario) }}">
+                                    {{ ucfirst($usuario->tipo_usuario) }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {{ $usuario->activo ? 'bg-success' : 'bg-danger' }}">
+                                    {{ $usuario->activo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-primary-blue btn-edit" 
+                                            data-id="{{ $usuario->id_usuario }}"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editarUsuarioModal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-delete" 
+                                            data-id="{{ $usuario->id_usuario }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button class="btn btn-outline-info btn-permissions" 
+                                            data-id="{{ $usuario->id_usuario }}"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#permisosUsuarioModal">
+                                        <i class="fas fa-key"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        @endforeach
+                         @endif
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Modal para Nuevo Usuario -->
-    <div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-labelledby="nuevoUsuarioModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="nuevoUsuarioModalLabel">Crear Nuevo Usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="nuevoUsuarioForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="nombre" class="form-label">Nombre</label>
-                                <input type="text" class="form-control" id="nombre" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="apellido" class="form-label">Apellido</label>
-                                <input type="text" class="form-control" id="apellido" required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="identificacion" class="form-label">Identificación</label>
-                                <input type="text" class="form-control" id="identificacion" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="email" class="form-label">Correo Electrónico</label>
-                                <input type="email" class="form-control" id="email" required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="rol" class="form-label">Rol</label>
-                                <select class="form-select" id="rol" required>
-                                    <option value="">Seleccionar rol</option>
-                                    <option value="admin">Administrador</option>
-                                    <option value="decano">Decano/Coordinador</option>
-                                    <option value="docente">Docente</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="estado" class="form-label">Estado</label>
-                                <select class="form-select" id="estado" required>
-                                    <option value="activo">Activo</option>
-                                    <option value="inactivo">Inactivo</option>
-                                </select>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="guardarUsuarioBtn">Guardar</button>
-                </div>
+<!-- Modal para Nuevo Usuario - Estilo azul -->
+<div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-labelledby="nuevoUsuarioModalLabel" aria-hidden="true">
+{{-- <div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-hidden="true"> --}}
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-primary-blue">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Crear Nuevo Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal para Nuevo Rol -->
-    <div class="modal fade" id="nuevoRolModal" tabindex="-1" aria-labelledby="nuevoRolModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="nuevoRolModalLabel">Crear Nuevo Rol</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+            <form id="nuevoUsuarioForm" method="POST" action="{{ route('usuarios.create') }}">
+                @csrf
                 <div class="modal-body">
-                    <form id="nuevoRolForm">
-                        <div class="mb-3">
-                            <label for="nombreRol" class="form-label">Nombre del Rol</label>
-                            <input type="text" class="form-control" id="nombreRol" required>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre*</label>
+                            <input type="text" class="form-control" name="nombre" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="descripcionRol" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="descripcionRol" rows="3" required></textarea>
+                        <div class="col-md-6">
+                            <label for="apellido" class="form-label">Apellido*</label>
+                            <input type="text" class="form-control" name="apellido" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Permisos</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="permiso1">
-                                <label class="form-check-label" for="permiso1">Ver dashboard</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="permiso2">
-                                <label class="form-check-label" for="permiso2">Gestionar usuarios</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="permiso3">
-                                <label class="form-check-label" for="permiso3">Gestionar roles</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="permiso4">
-                                <label class="form-check-label" for="permiso4">Gestionar periodos</label>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="guardarRolBtn">Guardar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+                    </div>
 
-    <!-- Modal para Nuevo Permiso -->
-    <div class="modal fade" id="nuevoPermisoModal" tabindex="-1" aria-labelledby="nuevoPermisoModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="nuevoPermisoModalLabel">Crear Nuevo Permiso</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="nuevoPermisoForm">
-                        <div class="mb-3">
-                            <label for="nombrePermiso" class="form-label">Nombre del Permiso</label>
-                            <input type="text" class="form-control" id="nombrePermiso" required>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="identificacion" class="form-label">Identificación*</label>
+                            <input type="text" class="form-control" name="identificacion" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="descripcionPermiso" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="descripcionPermiso" rows="3" required></textarea>
+                        <div class="col-md-6">
+                            <label for="correo" class="form-label">Correo Electrónico*</label>
+                            <input type="email" class="form-control" name="correo" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="moduloPermiso" class="form-label">Módulo</label>
-                            <select class="form-select" id="moduloPermiso" required>
-                                <option value="">Seleccionar módulo</option>
-                                <option value="Dashboard">Dashboard</option>
-                                <option value="Usuarios">Usuarios</option>
-                                <option value="Roles">Roles</option>
-                                <option value="Periodos">Periodos</option>
-                                <option value="Reportes">Reportes</option>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="contrasena" class="form-label">Contraseña*</label>
+                            <input type="password" class="form-control" name="contrasena" required minlength="6">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_rol" class="form-label">Rol*</label>
+                            <select class="form-select" name="id_rol" required>
+                                <option value="">Seleccionar rol</option>
+                                <option value="1">Administrador</option>
+                                <option value="2">Coordinador</option>
+                                <option value="3">Docente</option>
                             </select>
                         </div>
-                    </form>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="tipo_usuario" class="form-label">Tipo de Usuario*</label>
+                            <select class="form-select" name="tipo_usuario" required>
+                                <option value="administrador">Administrador</option>
+                                <option value="coordinador">Coordinador</option>
+                                <option value="docente">Docente</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="activo" class="form-label">Estado*</label>
+                            <select class="form-select" name="activo" required>
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="guardarPermisoBtn">Guardar</button>
+                    <button type="submit" class="btn btn-primary-blue" data-bs-dismiss="modal">
+                        <i class="fas fa-save me-2"></i>Guardar Usuario
+                    </button>
                 </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Usuario -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-primary-blue">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Actualizar Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editarUsuarioForm" method="PUT" action="{{ route('usuarios.update') }}">
+                @csrf
+              @method('PUT')
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="nombre" class="form-label">Nombre*</label>
+                            <input type="text" class="form-control" name="nombre" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="apellido" class="form-label">Apellido*</label>
+                            <input type="text" class="form-control" name="apellido" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="identificacion" class="form-label">Identificación*</label>
+                            <input type="text" class="form-control" name="identificacion" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="correo" class="form-label">Correo Electrónico*</label>
+                            <input type="email" class="form-control" name="correo" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="contrasena" class="form-label">Contraseña*</label>
+                            <input type="password" class="form-control" name="contrasena" required minlength="6">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_rol" class="form-label">Rol*</label>
+                            <select class="form-select" name="id_rol" required>
+                                <option value="">Seleccionar rol</option>
+                                <option value="1">Administrador</option>
+                                <option value="2">Coordinador</option>
+                                <option value="3">Docente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="tipo_usuario" class="form-label">Tipo de Usuario*</label>
+                            <select class="form-select" name="tipo_usuario" required>
+                                <option value="administrador">Administrador</option>
+                                <option value="coordinador">Coordinador</option>
+                                <option value="docente">Docente</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="activo" class="form-label">Estado*</label>
+                            <select class="form-select" name="activo" required>
+                                <option value="1">Activo</option>
+                                <option value="0">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-blue" data-bs-dismiss="modal">
+                        <i class="fas fa-save me-2"></i>Actualizar Usuario
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Contenido similar al modal de nuevo usuario pero para edición -->
+</div>
+
+<!-- Modal para Permisos de Usuario -->
+<div class="modal fade" id="permisosUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-info">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-key me-2"></i>Gestión de Permisos</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h6>Usuario: <span id="nombreUsuarioPermisos"></span></h6>
+                        <p class="text-muted">Seleccione los permisos para este usuario</p>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header bg-light-blue">
+                                <h6 class="mb-0">Permisos Disponibles</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="listaPermisos">
+                                    <!-- Los permisos se cargarán dinámicamente via AJAX -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary-blue" id="guardarPermisosBtn">
+                    <i class="fas fa-save me-2"></i>Guardar Permisos
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-    <script src="js/LogicaAdministrador/Admin-script.js"></script>
-
+<!-- Scripts -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Script para crear usuario
-    const guardarBtn = document.getElementById('guardarUsuarioBtn');
-    const form = document.getElementById('nuevoUsuarioForm');
-    const modalEl = document.getElementById('nuevoUsuarioModal');
-
-    if (!guardarBtn || !form || !modalEl) {
-        console.error("No se encontró uno de los elementos necesarios: botón, formulario o modal.");
-        return;
-    }
-
-    guardarBtn.addEventListener('click', () => {
-        // Validar campos requeridos
-        const nombre = document.getElementById('nombre')?.value?.trim();
-        const apellido = document.getElementById('apellido')?.value?.trim();
-        const correo = document.getElementById('email')?.value?.trim();
-        const contrasena = document.getElementById('password')?.value?.trim();
-        const identificacion = document.getElementById('identificacion')?.value?.trim();
-        const tipo_usuario = document.getElementById('rol')?.value;
-        const estado = document.getElementById('estado')?.value;
-
-        if (!nombre || !apellido || !correo || !contrasena || !identificacion || !tipo_usuario || !estado) {
-            alert('Por favor, complete todos los campos requeridos.');
-            return;
+$(document).ready(function() {
+    // Inicializar DataTable
+    $('.datatable').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json'
         }
+    });
 
-        const activo = estado === 'activo';
+    // Manejar el envío del formulario de nuevo usuario
+    $('#nuevoUsuarioForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
+        
+        $.ajax({
+            url: form.attr('action'),
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if(response.success) {
+                    toastr.success(response.message);
+                    $('#nuevoUsuarioModal').modal('hide');
+                    form[0].reset();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Error al guardar el usuario';
+                if(xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    errorMessage = 'Errores de validación:<br>';
+                    for(const field in errors) {
+                        errorMessage += `- ${errors[field][0]}<br>`;
+                    }
+                } else if(xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                toastr.error(errorMessage);
+            },
+            complete: function() {
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
 
-        const id_rol = {
-            admin: 1,
-            decano: 2,
-            docente: 3
-        }[tipo_usuario];
+    // Manejar clic en botón de editar
+    $('.btn-edit').on('click', function() {
+        const userId = $(this).data('id');
+        // Cargar datos del usuario via AJAX y mostrar en modal de edición
+        $.get(`/usuarios/${userId}`, function(response) {
+            if(response.success) {
+                const user = response.data;
+                // Rellenar formulario de edición con los datos del usuario
+                $('#editarUsuarioModal').modal('show');
+            } else {
+                toastr.error(response.message);
+            }
+        }).fail(function() {
+            toastr.error('Error al cargar los datos del usuario');
+        });
+    });
 
-        if (!id_rol) {
-            alert('Rol no válido.');
-            return;
-        }
+    // Manejar clic en botón de eliminar
+    $('.btn-delete').on('click', function() {
+        const userId = $(this).data('id');
+        
+        Swal.fire({
+            title: '¿Está seguro?',
+            text: "¡No podrá revertir esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `/usuarios/${userId}`,
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if(response.success) {
+                            toastr.success(response.message);
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error al eliminar el usuario');
+                    }
+                });
+            }
+        });
+    });
 
-        const data = {
-            nombre,
-            apellido,
-            correo,
-            contrasena,
-            identificacion,
-            id_rol,
-            tipo_usuario,
-            activo
-        };
+    // Manejar clic en botón de permisos
+    $('.btn-permissions').on('click', function() {
+        const userId = $(this).data('id');
+        
+        // Cargar datos del usuario y sus permisos
+        $.get(`/usuarios/${userId}`, function(userResponse) {
+            if(userResponse.success) {
+                const user = userResponse.data;
+                $('#nombreUsuarioPermisos').text(user.nombre + ' ' + user.apellido);
+                
+                // Cargar todos los permisos disponibles
+                $.get('/permisos', function(permsResponse) {
+                    if(permsResponse.success) {
+                        const permisos = permsResponse.data;
+                        const userPermisos = user.permisos || [];
+                        
+                        let html = '';
+                        permisos.forEach(permiso => {
+                            const tienePermiso = userPermisos.some(up => up.id === permiso.id);
+                            html += `
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permiso-checkbox" 
+                                           type="checkbox" 
+                                           id="permiso-${permiso.id}" 
+                                           value="${permiso.id}"
+                                           ${tienePermiso ? 'checked' : ''}>
+                                    <label class="form-check-label" for="permiso-${permiso.id}">
+                                        ${permiso.nombre}
+                                    </label>
+                                    <small class="d-block text-muted">${permiso.descripcion}</small>
+                                </div>
+                            </div>`;
+                        });
+                        
+                        $('#listaPermisos').html(html);
+                        $('#permisosUsuarioModal').modal('show');
+                    } else {
+                        toastr.error(permsResponse.message);
+                    }
+                }).fail(function() {
+                    toastr.error('Error al cargar los permisos');
+                });
+            } else {
+                toastr.error(userResponse.message);
+            }
+        }).fail(function() {
+            toastr.error('Error al cargar los datos del usuario');
+        });
+    });
 
-        // Deshabilitar el botón mientras se procesa
-        guardarBtn.disabled = true;
-        guardarBtn.textContent = 'Guardando...';
-
-        console.log('Datos a enviar:', data); // Para debug
-
-        fetch('/api/usuarios', {
+    // Guardar permisos del usuario
+    $('#guardarPermisosBtn').on('click', function() {
+        const userId = $('.btn-permissions.active').data('id');
+        const permisosSeleccionados = [];
+        
+        $('.permiso-checkbox:checked').each(function() {
+            permisosSeleccionados.push($(this).val());
+        });
+        
+        $.ajax({
+            url: `/usuarios/${userId}/permisos`,
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            body: JSON.stringify(data)
-        })
-        .then(async response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-            
-            // Solo procesar si el Content-Type es JSON
-            const contentType = response.headers.get('content-type');
-            
-            if (!contentType || !contentType.includes('application/json')) {
-                throw new Error('El servidor no está devolviendo datos JSON válidos. Verifique la configuración de la API.');
-            }
-            
-            // Obtener el JSON de la respuesta (exitosa o con error)
-            const responseData = await response.json();
-            console.log('Response data:', responseData);
-            
-            // Si hay error, procesar los detalles
-            if (!response.ok) {
-                let errorMessage = '';
-                
-                if (response.status === 422) {
-                    // Error de validación
-                    errorMessage = 'ERRORES DE VALIDACIÓN:\n\n';
-                    
-                    if (responseData.errors) {
-                        // Formato Laravel/Symfony
-                        Object.keys(responseData.errors).forEach(field => {
-                            const fieldErrors = Array.isArray(responseData.errors[field]) 
-                                ? responseData.errors[field] 
-                                : [responseData.errors[field]];
-                            errorMessage += `▶ ${field.toUpperCase()}:\n`;
-                            fieldErrors.forEach(error => errorMessage += `  - ${error}\n`);
-                            errorMessage += '\n';
-                        });
-                    } else if (responseData.error) {
-                        errorMessage += responseData.error;
-                    } else if (responseData.message) {
-                        errorMessage += responseData.message;
-                    } else if (responseData.mensaje) {
-                        errorMessage += responseData.mensaje;
-                    } else {
-                        errorMessage += 'Datos inválidos. Campos con problemas no especificados.';
-                    }
-                } else if (response.status === 500) {
-                    errorMessage = `ERROR DEL SERVIDOR (500):\n${responseData.message || responseData.mensaje || 'Error interno del servidor'}`;
-                } else if (response.status === 404) {
-                    errorMessage = 'ERROR 404:\nLa ruta /api/usuarios no fue encontrada. Verifique la configuración del backend.';
+            data: {
+                permisos: permisosSeleccionados
+            },
+            success: function(response) {
+                if(response.success) {
+                    toastr.success(response.message);
+                    $('#permisosUsuarioModal').modal('hide');
                 } else {
-                    errorMessage = `ERROR HTTP ${response.status}:\n${responseData.message || responseData.mensaje || responseData.error || 'Error desconocido'}`;
+                    toastr.error(response.message);
                 }
-                
-                // Agregar datos adicionales si existen
-                if (responseData.details) {
-                    errorMessage += `\n\nDETALLES ADICIONALES:\n${JSON.stringify(responseData.details, null, 2)}`;
-                }
-                
-                throw new Error(errorMessage);
-            }
-            
-            return responseData;
-        })
-        .then(responseData => {
-            console.log('Usuario creado:', responseData);
-            alert('Usuario creado exitosamente.');
-            
-            // Limpiar formulario
-            form.reset();
-            
-            // Cerrar modal
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Recargar la página
-            location.reload();
-        })
-        .catch(error => {
-            console.error('ERROR COMPLETO:', error);
-            console.error('ERROR MESSAGE:', error.message);
-            console.error('ERROR STACK:', error.stack);
-            
-            // Mostrar error detallado al usuario
-            alert(`❌ ERROR DETALLADO:\n\n${error.message}`);
-        })
-        .finally(() => {
-            // Rehabilitar el botón
-            guardarBtn.disabled = false;
-            guardarBtn.textContent = 'Guardar Usuario';
-        });
-    });
-
-    // Manejar eventos de botones de acción (editar)
-    const editButtons = document.querySelectorAll('.btn-outline-primary.btn-action');
-    editButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            alert('Función de edición en desarrollo');
-        });
-    });
-
-    // Manejar eventos de botones de eliminar
-    const deleteButtons = document.querySelectorAll('.btn-outline-danger.btn-action');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            if (confirm('¿Está seguro que desea eliminar este elemento?')) {
-                alert('Elemento eliminado correctamente');
+            },
+            error: function() {
+                toastr.error('Error al guardar los permisos');
             }
         });
     });
-
-    // Manejar otros botones de guardar
-    const guardarRolBtn = document.getElementById('guardarRolBtn');
-    const guardarPermisoBtn = document.getElementById('guardarPermisoBtn');
-
-    if (guardarRolBtn) {
-        guardarRolBtn.addEventListener('click', function() {
-            alert('Función de crear rol en desarrollo');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('nuevoRolModal'));
-            if (modal) modal.hide();
-        });
-    }
-
-    if (guardarPermisoBtn) {
-        guardarPermisoBtn.addEventListener('click', function() {
-            alert('Función de crear permiso en desarrollo');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('nuevoPermisoModal'));
-            if (modal) modal.hide();
-        });
-    }
 });
 </script>
+
+<style>
+/* Estilos personalizados con colores azules cálidos */
+.bg-primary-blue {
+    background-color: #2c7be5;
+}
+.bg-light-blue {
+    background-color: #e6f0ff;
+}
+.text-primary-dark {
+    color: #1a5cb0;
+}
+.btn-primary-blue {
+    background-color: #2c7be5;
+    border-color: #2c7be5;
+    color: white;
+}
+.btn-primary-blue:hover {
+    background-color: #1a5cb0;
+    border-color: #1a5cb0;
+}
+.btn-outline-primary-blue {
+    border-color: #2c7be5;
+    color: #2c7be5;
+}
+.btn-outline-primary-blue:hover {
+    background-color: #2c7be5;
+    color: white;
+}
+.border-primary-blue {
+    border-color: #2c7be5 !important;
+}
+.table-blue thead th {
+    background-color: #2c7be5;
+    color: white;
+}
+.role-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+.role-administrador {
+    background-color: #e63757;
+    color: white;
+}
+.role-coordinador {
+    background-color: #00d97e;
+    color: white;
+}
+.role-docente {
+    background-color: #6e84a3;
+    color: white;
+}
+</style>
 @endsection

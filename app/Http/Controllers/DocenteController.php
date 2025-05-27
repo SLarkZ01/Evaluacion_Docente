@@ -12,10 +12,26 @@ class DocenteController extends Controller
     public function p_docente()
     {
         $correo = Session::get('correo_usuario');
-    
-        // Llamar al procedimiento almacenado
-        $evaluaciones = DB::select('CALL ObtenerEvaluacionesPorCorreo(?)', [$correo]);
-       // $evaluaciones = $evaluaciones[0] ?? null;
+
+        // Verificar que el correo esté en la sesión
+        if (!$correo) {
+            return redirect()->route('login')->with('error', 'Sesión expirada');
+        }
+
+        try {
+            // Llamar al procedimiento almacenado
+            $evaluaciones = DB::select('CALL ObtenerEvaluacionesPorCorreo(?)', [$correo]);
+            
+            // Si no hay evaluaciones, inicializar como array vacío
+            if (empty($evaluaciones)) {
+                $evaluaciones = [];
+            }
+            
+        } catch (\Exception $e) {
+            // En caso de error, inicializar como array vacío y log del error
+            \Log::error('Error al obtener evaluaciones: ' . $e->getMessage());
+            $evaluaciones = [];
+        }
         
         return view('Docente.panel_docente', compact('evaluaciones'));
     }

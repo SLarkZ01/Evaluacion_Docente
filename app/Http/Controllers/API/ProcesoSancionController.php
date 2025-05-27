@@ -31,19 +31,16 @@ class ProcesoSancionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'numero_resolucion' => 'required|string|unique:proceso_sancion,numero_resolucion',
+            'numero_resolucion' => 'required|string|unique:sanciones,numero_resolucion',
             'fecha_emision' => 'required|date',
-            'nombre_docente' => 'required|string|max:255',
-            'apellido_docente' => 'required|string|max:255',
             'identificacion_docente' => 'required|string|max:20',
-            'asignatura' => 'required|string|max:255',
-            'calificacion_final' => 'required|numeric|between:0,5.00',
             'tipo_sancion' => 'required|string',
             'antecedentes' => 'required|string',
             'fundamentos' => 'required|string',
             'resolucion' => 'required|string',
             'firma' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
+
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -57,14 +54,10 @@ class ProcesoSancionController extends Controller
             $firmaPath = 'firmas/' . $firmaName;
         }
 
-        $resultado = DB::select('CALL CrearProcesoSancion(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        $resultado = DB::select('CALL CreateSancion(?, ?, ?, ?, ?, ?, ?, ?)', [
+            $request->id_docente,
             $request->numero_resolucion,
             $request->fecha_emision,
-            $request->nombre_docente,
-            $request->apellido_docente,
-            $request->identificacion_docente,
-            $request->asignatura,
-            $request->calificacion_final,
             $request->tipo_sancion,
             $request->antecedentes,
             $request->fundamentos,
@@ -89,11 +82,11 @@ class ProcesoSancionController extends Controller
     {
         $procesos = DB::select('CALL ObtenerProcesoSancionPorId(?)', [$id]);
         $proceso = $procesos[0] ?? null;
-        
+
         if (!$proceso) {
             return response()->json(['error' => 'Proceso de sanción no encontrado'], 404);
         }
-        
+
         return response()->json($proceso);
     }
 
@@ -128,7 +121,7 @@ class ProcesoSancionController extends Controller
         // Verificar si el proceso existe
         $procesos = DB::select('CALL ObtenerProcesoSancionPorId(?)', [$id]);
         $proceso = $procesos[0] ?? null;
-        
+
         if (!$proceso) {
             return response()->json(['error' => 'Proceso de sanción no encontrado'], 404);
         }
@@ -139,7 +132,7 @@ class ProcesoSancionController extends Controller
             if ($proceso->firma_path) {
                 Storage::delete('public/' . $proceso->firma_path);
             }
-            
+
             $firma = $request->file('firma');
             $firmaName = time() . '_' . $firma->getClientOriginalName();
             $firma->storeAs('public/firmas', $firmaName);
@@ -161,6 +154,7 @@ class ProcesoSancionController extends Controller
             $request->resolucion,
             $firmaPath
         ]);
+        
 
         return response()->json([
             'success' => true,
@@ -180,7 +174,7 @@ class ProcesoSancionController extends Controller
         // Verificar si el proceso existe
         $procesos = DB::select('CALL ObtenerProcesoSancionPorId(?)', [$id]);
         $proceso = $procesos[0] ?? null;
-        
+
         if (!$proceso) {
             return response()->json(['error' => 'Proceso de sanción no encontrado'], 404);
         }
@@ -211,7 +205,7 @@ class ProcesoSancionController extends Controller
         $procesos = DB::select('CALL BuscarProcesoSancionPorDocente(?)', [$nombre]);
         return response()->json($procesos);
     }
-    
+
     /**
      * Filtra procesos de sanción por tipo
      * 
@@ -224,7 +218,7 @@ class ProcesoSancionController extends Controller
         $procesos = DB::select('CALL FiltrarProcesoSancionPorTipo(?)', [$tipo]);
         return response()->json($procesos);
     }
-    
+
     /**
      * Filtra procesos de sanción por rango de calificación
      * 
@@ -238,7 +232,7 @@ class ProcesoSancionController extends Controller
         $procesos = DB::select('CALL FiltrarProcesoSancionPorCalificacion(?, ?)', [$min, $max]);
         return response()->json($procesos);
     }
-    
+
     /**
      * Marca un proceso de sanción como enviado
      * 
@@ -250,7 +244,7 @@ class ProcesoSancionController extends Controller
         // Verificar si el proceso existe
         $procesos = DB::select('CALL ObtenerProcesoSancionPorId(?)', [$id]);
         $proceso = $procesos[0] ?? null;
-        
+
         if (!$proceso) {
             return response()->json(['error' => 'Proceso de sanción no encontrado'], 404);
         }
@@ -263,7 +257,7 @@ class ProcesoSancionController extends Controller
             'rows_updated' => $resultado[0]->rows_updated ?? 0
         ]);
     }
-    
+
     /**
      * Obtiene docentes con calificaciones bajas
      * 

@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ActaCompromiso;
 use App\Models\ProcesoSancionRetiro;
+use App\Models\Sanciones;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\JsonResponse;
 
 class DecanoCordinadorController extends Controller
 {
@@ -71,13 +74,13 @@ return view('graficas.facultades', compact('labels', 'promedio_nota'));
 public function docentesDestacados()
 {
     // Ejecutar el procedimiento almacenado
-    $docentes = DB::select('CALL ObtenerDocentesDestacados()');
+    $docentesUnicos = DB::select('CALL ObtenerDocentesDestacados()');
 
     // Verificar los datos obtenidos
-    dd($docentes);  // Verifica los datos obtenidos de la base de datos
+    dd($docentesUnicos);  // Verifica los datos obtenidos de la base de datos
 
     // Filtrar los duplicados basados en el nombre del docente
-    $docentesUnicos = collect($docentes)->unique('docente');
+    $docentesUnicos = collect($docentesUnicos)->unique('docente');
 
     // Verificar los datos después de filtrar duplicados
     dd($docentesUnicos);  // Verifica los datos después de filtrar duplicados
@@ -103,267 +106,282 @@ public function mostrarGrafica()
 
 
 //docentes destacados
-    public function acta_compromiso()
 
-    {   $id_docente = request('id_docente');
-        $docentesbusqueda = DB::select('CALL BuscarDocente(?)', [$id_docente]);
-        $actas = $response['data'] ?? [];
-        return view('decano.acta_compromiso', compact('docentesbusqueda', 'actas'));
-    }
-
-    /**
-     * Guarda una nueva acta de compromiso
-     */
-
-    /**
-     * Filtra docentes según departamento y rango de calificación
-     */
-    public function filtrar_docentes(Request $request)
-    {
-        $query = Docente::query()->where('promedio_total', '<', 4.0);
-
-        // Filtrar por departamento
-        if ($request->has('id_facultad') && !empty($request->id_facultad)) {
-            $query->where('id_curso', $request->id_curso);
-        }
-
-        // Filtrar por rango de calificación
-        if ($request->has('calificacion') && !empty($request->promedio_total)) {
-            switch ($request->calificacion) {
-                case '1':
-                    $query->where('promedio_total', '<', 2.0);
-                    break;
-                case '2':
-                    $query->whereBetween('promedio_total', [2.0, 2.99]);
-                    break;
-                case '3':
-                    $query->whereBetween('promedio_total', [3.0, 3.99]);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        $docentes = $query->orderBy('apellido_docente')->get();
-
-        return response()->json([
-            'docentes' => $docentes
-        ]);
-    }
-
-//  public function guardar(Request $request)
-//     {
-//         // Validación de datos
-//         $request->validate([
-//             'numero_acta' => 'required|string|max:30|unique:acta_compromiso,numero_acta',
-//             'fecha_generacion' => 'required|date',
-//             'nombre_docente' => 'required|string|max:100',
-//             'apellido_docente' => 'required|string|max:100',
-//             'identificacion_docente' => 'required|string|max:20',
-//             'curso' => 'required|string|max:100',
-//             'promedio_total' => 'required|numeric|min:0|max:5',
-//             'retroalimentacion' => 'required|string',
-//             'firma' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-//         ]);
-
-//         try {
-//             // Procesar la firma si se ha subido
-//             $firmaPath = null;
-//             if ($request->hasFile('firma')) {
-//                 $firma = $request->file('firma');
-//                 $firmaName = time() . '_' . $firma->getClientOriginalName();
-//                 $firma->move(public_path('uploads/firmas'), $firmaName);
-//                 $firmaPath = 'uploads/firmas/' . $firmaName;
-//             }
-
-//             // Crear el acta usando create() en lugar de new
-//             $acta = ActaCompromiso::create([
-//                 'numero_acta' => $request->numero_acta,
-//                 'fecha_generacion' => $request->fecha_generacion,
-//                 'nombre_docente' => $request->nombre_docente,
-//                 'apellido_docente' => $request->apellido_docente,
-//                 'identificacion_docente' => $request->identificacion_docente,
-//                 'curso' => $request->curso,
-//                 'promedio_total' => $request->promedio_total,
-//                 'retroalimentacion' => $request->retroalimentacion,
-//                 'firma' => $firmaPath, // Cambiado de firma_path a firma
-//             ]);
-
-//             return redirect()->route('decano.acta_compromiso')
-//                 ->with('success', 'Acta de compromiso registrada correctamente');
-
-//         } catch (\Exception $e) {
-//             // Para debugging, mostrar el error completo
-//             \Log::error('Error al guardar acta: ' . $e->getMessage());
-//             \Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-//             return redirect()->back()
-//                 ->with('error', 'Error al registrar el acta: ' . $e->getMessage())
-//                 ->withInput();
-//         }
-//     }
-
-    // Método para ver una acta específica
-    public function ver($id)
-    {
-        $acta = ActaCompromiso::findOrFail($id);
-        return view('decano.ver_acta_compromiso', compact('acta'));
-    }
-
-    // Método para descargar el acta en PDF
-    public function descargarPDF($id)
-    {
-        $acta = ActaCompromiso::findOrFail($id);
-
-        // Implementar generación del PDF
-        $pdf = PDF::loadView('pdf.acta_compromiso', compact('acta'));
-
-        return $pdf->download('acta_compromiso_' . $acta->numero_acta . '.pdf');
-    }
-
-    // Método para eliminar un acta
-    public function destroy($id)
-    {
-        try {
-            $acta = ActaCompromiso::findOrFail($id);
-
-            // Eliminar archivo de firma si existe
-            if ($acta->firma && file_exists(public_path($acta->firma))) {
-                unlink(public_path($acta->firma));
-            }
-
-            $acta->delete();
-
-            return redirect()->route('decano.acta_compromiso')
-                ->with('success', 'Acta de compromiso eliminada correctamente');
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error al eliminar el acta: ' . $e->getMessage());
-        }
-    }
-    /**
-     * Muestra el formulario para editar un acta
-     */
-    public function editar_acta($id_acta)
-    {
-        $acta = ActaCompromiso::findOrFail($id_acta);
-        $docentesbusqueda = DB::select('CALL BuscarDocente(?)',[$id_acta]);
-        // Obtener el docente relacionado con el acta
-        $docente = $acta->docente;
-        return view('decano.acta_compromiso', compact('acta', 'docentesbusqueda'));
-    }
-public function listar_actas()
+public function acta_compromiso(Request $request)
 {
-    $actas = ActaCompromiso::all();
+    // Obtener estadísticas
+    $totalActas = ActaCompromiso::count();
+    $promedioGeneral = ActaCompromiso::avg('promedio_total') ?? 0;
+    $actasMes = ActaCompromiso::whereMonth('fecha_generacion', now()->month)->count();
+    $actasFirmadas = ActaCompromiso::whereNotNull('firma')->count();
 
-    return view('decano.acta_compromiso', compact('actas'));
+    // Filtrar actas
+    $query = ActaCompromiso::query();
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nombre_docente', 'like', "%$search%")
+              ->orWhere('apellido_docente', 'like', "%$search%")
+              ->orWhere('identificacion_docente', 'like', "%$search%")
+              ->orWhere('numero_acta', 'like', "%$search%");
+        });
+    }
+
+    $actas = $query->orderBy('fecha_generacion', 'desc')->paginate(10);
+    $docentesbusqueda = DB::select('CALL BuscarDocente(?)', [request('id_docente')]);
+
+    return view('decano.acta_compromiso', compact(
+        'actas',
+        'docentesbusqueda',
+        'totalActas',
+        'promedioGeneral',
+        'actasMes',
+        'actasFirmadas'
+    ));
 }
-    /**
-     * Actualiza un acta existente
-     */
-    public function actualizar_acta(Request $request, $id)
-    {
-        $acta = ActaCompromiso::find($id);
 
-        if (!$acta) {
-            return redirect()->route('decano.acta_compromiso')
-                ->withErrors(['error' => 'Acta de compromiso no encontrada']);
-        }
-
+public function store(Request $request)
+{
+    try {
         $validator = Validator::make($request->all(), [
-            'numero_acta' => 'required|string|unique:acta_compromiso,numero_acta,' . $id,
             'fecha_generacion' => 'required|date',
-            'nombre_docente' => 'required|string|max:255',
-            'apellido_docente' => 'required|string|max:255',
-            'identificacion_docente' => 'required|string|max:20',
-            'curso' => 'required|string|max:255',
-            'calificacion_final' => 'required|numeric|between:0,5.00',
-            'retroalimentacion' => 'required|string',
-            'firma' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'nombre_docente' => 'required|string',
+            'apellido_docente' => 'required|string',
+            'identificacion_docente' => 'required|string',
+            'curso' => 'required|string',
+            'promedio_total' => 'required|numeric',
+            'retroalimentacion' => 'required|string'
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
+        $result = DB::select('CALL CreateActaCompromiso(?, ?, ?, ?, ?, ?, ?)', [
+            $request->fecha_generacion,
+            $request->nombre_docente,
+            $request->apellido_docente,
+            $request->identificacion_docente,
+            $request->curso,
+            $request->promedio_total,
+            $request->retroalimentacion
+        ]);
+
+
+
+        return response()->json([
+            'success' => true,
+            'data' => $result[0],
+            'message' => 'Acta de compromiso creada correctamente'
+        ], 201);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al crear el acta de compromiso: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function show($id)
+{
+    try {
+        $acta = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+
+        if (empty($acta)) {
+            return response()->json(['success' => false, 'message' => 'Acta no encontrada'], 404);
+        }
+
+        return view('decano.actas.partials.ver_modal', ['acta' => $acta[0]]);
+    } catch (\Exception $e) {
+        \Log::error('Error viewing acta: ' . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Error al visualizar el acta'], 500);
+    }
+    // try {
+    //     $acta = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+
+    //     if (empty($acta)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'El acta no fue encontrada'
+    //         ], 404);
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'data' => $acta[0],
+    //         'firma_url' => $acta[0]->firma ? asset('storage/' . $acta[0]->firma) : null
+    //     ]);
+
+    // } catch (\Exception $e) {
+    //     \Log::error('Error viewing acta: ' . $e->getMessage());
+    //     return response()->json([
+    //         'success' => false,
+    //         'message' => 'Error al visualizar el acta'
+    //     ], 500);
+    // }
+}
+public function edit($id)
+{
+    try {
+        $acta = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+
+        if (empty($acta)) {
+            return redirect()->back()->with('error', 'El acta no fue encontrada');
+        }
+
+        // Assuming you have a way to get docentes, maybe from another stored procedure
+        $docentes = []; // You should populate this
+
+        return view('decano.actas.editar', [
+            'acta' => $acta[0],
+            'docentes' => $docentes
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Error editing acta: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Error al cargar el formulario de edición');
+    }
+}
+
+// public function update(Request $request, $id)
+// {
+//     $validater = $request->validate([
+//         'numero_acta' => 'required|unique:acta_compromiso,numero_acta,'.$id,
+//         'fecha_generacion' => 'required|date',
+//         'nombre_docente' => 'required|string|max:255',
+//         'apellido_docente' => 'required|string|max:255',
+//         'identificacion_docente' => 'required|string|max:255',
+//         'curso' => 'required|string|max:255',
+//         'promedio_total' => 'required|numeric|min:0|max:5',
+//         'retroalimentacion' => 'required|string',
+//         'firma' => 'nullable|file|mimes:jpg,jpeg,png|max:2048'
+//     ]);
+
+//     try {
+//         $firmaPath = null;
+//         if ($request->hasFile('firma')) {
+//             // Delete old file if exists
+//             $oldActa = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+//             if ($oldActa[0]->firma_path && Storage::disk('public')->exists($oldActa[0]->firma_path)) {
+//                 Storage::disk('public')->delete($oldActa[0]->firma_path);
+//             }
+
+//             $firmaPath = $request->file('firma')->store('firmas', 'public');
+//         }
+
+//         $result = DB::select('CALL UpdateActaCompromiso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+//             $id,
+//             $request->numero_acta,
+//             $request->fecha_generacion,
+//             $request->nombre_docente,
+//             $request->apellido_docente,
+//             $request->identificacion_docente,
+//             $request->curso,
+//             $request->promedio_total,
+//             $request->retroalimentacion,
+//             $firmaPath
+//         ]);
+
+//         return response()->json([
+//             'success' => true,
+//             'data' => $result[0],
+//             'message' => 'Acta de compromiso actualizada correctamente'
+//         ], 200);
+
+//     } catch (\Exception $e) {
+//         \Log::error('Error updating acta: ' . $e->getMessage());
+//         return response()->json([
+//             'success' => false,
+//             'message' => 'Error al actualizar el acta de compromiso: ' . $e->getMessage()
+//         ], 500);
+//     }
+// }
+public function ver($id)
+{
+    try {
+        $acta = DB::select('CALL GetActaCompromisoById(?)', [$id]);
+
+        if (empty($acta)) {
+            return redirect()->back()->with('error', 'El acta no fue encontrada');
+        }
+
+        return view('decano.actas.ver', ['acta' => $acta[0]]);
+    } catch (\Exception $e) {
+        Log::error('Error viewing acta: ' . $e->getMessage());
+        return redirect()->back()->with('error', 'Error al visualizar el acta');
+    }
+}
+public function update(Request $request, $id)
+{
+    try {
+        $validatedData = $request->validate([
+            'numero_acta' => 'required|unique:acta_compromiso,numero_acta,'.$id.',id',
+            'fecha_generacion' => 'required|date',
+            'nombre_docente' => 'required|string|max:255',
+            'apellido_docente' => 'required|string|max:255',
+            'identificacion_docente' => 'required|string|max:255',
+            'curso' => 'required|string|max:255',
+            'promedio_total' => 'required|numeric|min:0|max:5',
+            'retroalimentacion' => 'required|string',
+            'firma' => 'nullable|file|mimes:jpg,jpeg,png|max:2048'
+        ]);
+
+        $firmaPath = null;
         if ($request->hasFile('firma')) {
-            // Eliminar firma anterior si existe
-            if ($acta->firma) {
-                Storage::delete('public/' . $acta->firma);
-            }
-
-            $firma = $request->file('firma');
-            $firmaName = time() . '_' . $firma->getClientOriginalName();
-            $firma->storeAs('public/firmas', $firmaName);
-            $acta->firma = 'firmas/' . $firmaName;
+            // Procesar firma...
         }
 
-        $acta->numero_acta = $request->numero_acta;
-        $acta->fecha_generacion = $request->fecha_generacion;
-        $acta->nombre_docente = $request->nombre_docente;
-        $acta->apellido_docente = $request->apellido_docente;
-        $acta->identificacion_docente = $request->identificacion_docente;
-        $acta->curso = $request->curso;
-        $acta->calificacion_final = $request->calificacion_final;
-        $acta->retroalimentacion = $request->retroalimentacion;
-        $acta->save();
+        $result = DB::select('CALL UpdateActaCompromiso(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            $id,
+            $validatedData['numero_acta'],
+            $validatedData['fecha_generacion'],
+            $validatedData['nombre_docente'],
+            $validatedData['apellido_docente'],
+            $validatedData['identificacion_docente'],
+            $validatedData['curso'],
+            $validatedData['promedio_total'],
+            $validatedData['retroalimentacion'],
+            $firmaPath
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $result[0],
+            'message' => 'Acta de compromiso actualizada correctamente'
+        ], 200);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error de validación',
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        Log::error('Error updating acta: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al actualizar el acta de compromiso: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+public function destroy($id)
+{
+    try {
+        $acta = DB::select('CALL DeleteActaCompromiso(?)', [$id]);
 
         return redirect()->route('decano.acta_compromiso')
-            ->with('success', 'Acta de compromiso actualizada exitosamente');
+            ->with('success', 'Acta eliminada correctamente');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error al eliminar el acta: ' . $e->getMessage());
     }
-
-    /**
-     * Elimina un acta
-     */
-    public function eliminar_acta($id)
-{
-    // Llama al procedimiento almacenado para obtener el acta
-    $acta = DB::select('CALL obtener_acta_por_id(?)', [$id]);
-
-    if (!empty($acta)) {
-        $acta = $acta[0]; // Tomamos el primer resultado (uno solo)
-
-        // Eliminar firma si existe
-        // if (isset($acta->firma_path) && $acta->firma_path) {
-        //     \Illuminate\Support\Facades\Storage::delete('public/' . $acta->firma_path);
-        // }
-
-        // Llamada al procedimiento para eliminar
-     DB::statement('CALL eliminar_acta(?)', [$id]);
-    }
-
-    return redirect()->route('decano.acta_compromiso')
-        ->with('success', 'Acta de compromiso eliminada exitosamente');
 }
-
-    /**
-     * Marca un acta como enviada
-     */
-   public function enviar_acta($id)
-{
-    // Ejecutar el procedimiento almacenado para marcar como enviada
-DB::statement('CALL marcar_acta_como_enviada(?)', [$id]);
-
-    return redirect()->route('decano.acta_compromiso')
-        ->with('success', 'Acta de compromiso enviada exitosamente');
-}
-
-
-//alertas bajo desempe
-    public function abd()
-    {
-
-        $facultades = Facultad::all();
-        $docentesAlerta = Docente::where('promedio_total', '<', 3.0)->count();
-
-        return view('decano.alertasBajoDesempeno', [
-            'facultades' => $facultades,
-            'docentesAlerta' => $docentesAlerta
-        ]);
-    }
 
 
 
@@ -379,10 +397,13 @@ DB::statement('CALL marcar_acta_como_enviada(?)', [$id]);
 
     {
 
+        $docentesbusqueda = DB::select('CALL ObtenerTodosLosDocentes()');
 
-
-        return view('decano.proceso_sancion_retiro');
+        return view('decano.proceso_sancion_retiro', compact('docentesbusqueda'));
     }
+
+
+
 
     //seguimiento plan de mejora
     public function spm()
@@ -453,6 +474,7 @@ DB::statement('CALL marcar_acta_como_enviada(?)', [$id]);
         return redirect()->route('decano.acta_compromiso')
             ->with('success', 'Acta de compromiso actualizada correctamente');
     }
+
     public function descargar()
 {
     $path = storage_path('app/public/actas/acta_compromiso.pdf'); // Ajusta la ruta según corresponda
@@ -479,70 +501,52 @@ public function mostrarFormularioSancion()
      */
     public function guardarSancion(Request $request)
     {
-        // Validar los datos del formulario
-        $request->validate([
-            'id_docente' => 'required|exists:docentes,id',
-            'numero_resolucion' => 'required|string|max:50|unique:proceso_sancion_retiro,numero_resolucion',
+        $validator = Validator::make($request->all(), [
+            'numero_resolucion' => 'required|string|unique:sanciones,numero_resolucion',
             'fecha_emision' => 'required|date',
-            'curso' => 'required|string|max:100',
-            'calificacion_final' => 'required|numeric|min:0|max:100',
-            'tipo_sancion' => 'required|in:leve,grave,retiro',
+            'identificacion_docente' => 'required|string|max:20',
+            'tipo_sancion' => 'required|string',
             'antecedentes' => 'required|string',
             'fundamentos' => 'required|string',
             'resolucion' => 'required|string',
-            'firma' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'firma' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        try {
-            // Buscar los datos del docente desde el procedimiento almacenado
-            $docenteData = DB::select('CALL BuscarDocente(?)', [$request->id_docente]);
 
-            if (empty($docenteData)) {
-                return back()->with('error', 'No se encontró información del docente.');
-            }
-
-            $docente = $docenteData[0]; // Solo se espera un resultado
-
-            // Procesar la firma
-            $firmaPath = null;
-            if ($request->hasFile('firma')) {
-                $firma = $request->file('firma');
-                $firmaPath = $firma->storeAs(
-                    'firmas',
-                    uniqid('firma_') . '.' . $firma->getClientOriginalExtension(),
-                    'public'
-                );
-            }
-
-            // Crear la sanción directamente en la tabla proceso_sancion_retiro
-            $sancion = DB::table('proceso_sancion_retiro')->insertGetId([
-                'docente_id' => $request->id_docente,
-                'nombre' => $docente->nombre,
-                'apellido' => $docente->apellido,
-                'identificacion' => $docente->identificacion,
-                'numero_resolucion' => $request->numero_resolucion,
-                'fecha_emision' => $request->fecha_emision,
-                'curso' => $request->curso,
-                'calificacion_final' => $request->calificacion_final,
-                'tipo_sancion' => $request->tipo_sancion,
-                'antecedentes' => $request->antecedentes,
-                'fundamentos' => $request->fundamentos,
-                'resolucion' => $request->resolucion,
-                'firma_path' => $firmaPath,
-                'creado_por' => auth()->id(),
-                'estado' => 'emitida',
-                'fecha_notificacion' => null,
-                'fecha_proceso' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            return redirect()->route('decano.sanciones')->with('success', 'La sanción ha sido registrada correctamente.');
-        } catch (\Exception $e) {
-            Log::error('Error al guardar la sanción: ' . $e->getMessage());
-            return back()->withInput()->with('error', 'Ha ocurrido un error al guardar la sanción: ' . $e->getMessage());
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        $firmaPath = null;
+        if ($request->hasFile('firma')) {
+            $firma = $request->file('firma');
+            $firmaName = time() . '_' . $firma->getClientOriginalName();
+            $firma->storeAs('public/firmas', $firmaName);
+            $firmaPath = 'firmas/' . $firmaName;
+        }
+
+        $resultado = DB::select('CALL CreateSancion(?, ?, ?, ?, ?, ?, ?, ?)', [
+            $request->id_docente,
+            $request->numero_resolucion,
+            $request->fecha_emision,
+            $request->tipo_sancion,
+            $request->antecedentes,
+            $request->fundamentos,
+            $request->resolucion,
+            $firmaPath
+        ]);
+
+
+          return response()->json([
+           'success' => true,
+           'message' => 'Proceso de sanción creado exitosamente',
+          'id_sancion' => $resultado[0]->id_sancion ?? null
+          ], 201);
+    //     return redirect()
+    //     ->route('decano.procesoSancionRetiro')
+    // ->with('success', 'Proceso de sanción creado exitosamente');
     }
+
 
     /**
      * Muestra la lista de sanciones emitidas.
@@ -566,78 +570,143 @@ public function mostrarFormularioSancion()
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-   
-
 public function generarPDFSancion($id)
-{
-    $sancion = DB::table('proceso_sancion_retiro')
-                ->join('docentes', 'proceso_sancion_retiro.docente_id', '=', 'docentes.id')
-                ->select('proceso_sancion_retiro.*', 'docentes.nombre', 'docentes.apellido', 'docentes.email')
-                ->where('proceso_sancion_retiro.id', $id)
-                ->first();
+    {
+        $sancion = DB::table('sanciones')
+                    ->join('docentes', 'sanciones.docente_id', '=', 'docentes.id')
+                    ->select(
+                        'sanciones.*',
+                        'docentes.nombre',
+                        'docentes.apellido',
+                        'docentes.email',
+                        'docentes.identificacion',
+                        'docentes.departamento',
+                        'docentes.telefono'
+                    )
+                    ->where('sanciones.id', $id)
+                    ->first();
 
-    if (!$sancion) {
-        abort(404, 'No se encontró la sanción solicitada.');
-    }
+        if (!$sancion) {
+            abort(404, 'No se encontró la sanción solicitada.');
+        }
 
-    try {
-        $pdf = PDF::loadView('decano.pdf_sancion', compact('sancion'));
-        return $pdf->download('Resolucion_Sancion_' . $sancion->numero_resolucion . '.pdf');
-    } catch (\Exception $e) {
-        Log::error('Error al generar PDF de sanción: ' . $e->getMessage());
-        abort(500, 'Error al generar el PDF.');
+        try {
+            $data = [
+                'sancion' => $sancion,
+                'fecha_actual' => Carbon::now()->format('d/m/Y'),
+                'institucion' => config('app.name'),
+                'logo' => public_path('img/logo-institucion.png')
+            ];
+
+            $pdf = PDF::loadView('sanciones.pdf', $data)
+                     ->setPaper('a4', 'portrait')
+                     ->setOptions([
+                         'isHtml5ParserEnabled' => true,
+                         'isRemoteEnabled' => true
+                     ]);
+
+            return $pdf->download('Resolucion_Sancion_' . $sancion->numero_resolucion . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Error al generar PDF de sanción ID ' . $id . ': ' . $e->getMessage());
+            abort(500, 'Error al generar el PDF. Por favor intente más tarde.');
+        }
     }
-}
 
     /**
-     * Envía la resolución de sanción al docente por correo electrónico.
+     * Envía la resolución de sanción al docente por correo electrónico
      *
      * @param  int  $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function enviarResolucion($id)
-    {
-        try {
-            $sancion = DB::table('proceso_sancion_retiro')
-                        ->join('docentes', 'proceso_sancion_retiro.docente_id', '=', 'docentes.id')
-                        ->select('proceso_sancion_retiro.*', 'docentes.nombre', 'docentes.apellido', 'docentes.email')
-                        ->where('proceso_sancion_retiro.id', $id)
-                        ->first();
 
-            if (!$sancion) {
-                return back()->with('error', 'No se encontró la sanción solicitada.');
-            }
+     public function enviarResolucion(Request $request): JsonResponse
+{
+   try {
+        DB::beginTransaction();
 
-            if (!$sancion->email) {
-                return back()->with('error', 'El docente no tiene un correo electrónico registrado.');
-            }
+        // Validación completa
+        $validated = $request->validate([
+             'numero_resolucion' => 'required|string|unique:sanciones,numero_resolucion',
+            'fecha_emision' => 'required|date',
+            'identificacion_docente' => 'required|string|max:20',
+            'tipo_sancion' => 'required|string',
+            'antecedentes' => 'required|string',
+            'fundamentos' => 'required|string',
+            'resolucion' => 'required|string',
+            'firma' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            // Agrega otros campos necesarios
+        ]);
 
-            // Generar PDF para adjuntar al correo
-            $pdf = PDF::loadView('decano.pdf_sancion', compact('sancion'));
-            $pdfContent = $pdf->output();
-            $pdfFileName = 'Resolucion_Sancion_' . $sancion->numero_resolucion . '.pdf';
+        $idDocente = $validated['id_docente'];
 
-            // Enviar correo con la notificación
-            // Nota: Debes asegurarte de tener la clase NotificacionSancion implementada
-            // Mail::to($sancion->email)
-            //     ->send(new NotificacionSancion($sancion, $pdfContent, $pdfFileName));
+        // Buscar la sanción (ajusta según tu lógica)
+        $sancion = Sancion::where('docente_id', $idDocente)
+            ->with('docente')
+            ->latest()
+            ->firstOrFail();
 
-            // Actualizar la fecha de notificación
-            DB::table('proceso_sancion_retiro')
-                ->where('id', $id)
-                ->update([
-                    'fecha_notificacion' => Carbon::now(),
-                    'estado' => 'notificada',
-                    'updated_at' => now()
-                ]);
-
-            return back()->with('success', 'La resolución ha sido enviada correctamente al docente.');
-        } catch (\Exception $e) {
-            Log::error('Error al enviar resolución: ' . $e->getMessage());
-            return back()->with('error', 'Ha ocurrido un error al enviar la resolución al docente: ' . $e->getMessage());
+        if (empty($sancion->docente->email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El docente no tiene email registrado'
+            ], 400);
         }
-    }
 
+        // Generar PDF
+        $pdf = $this->generarPdfSancion($sancion);
+        $pdfContent = $pdf->output();
+        $pdfFileName = 'Resolucion_Sancion_' . $sancion->numero_resolucion . '.pdf';
+
+        // Enviar email
+        Mail::to($sancion->docente->email)
+            ->cc('rrhh@institucion.edu')
+            ->send(new NotificacionSancion($sancion, $pdfContent, $pdfFileName));
+
+        // Actualizar estado
+        $sancion->update([
+            'fecha_notificacion' => now(),
+            'estado' => 'notificada',
+            'notificado_por' => auth()->id()
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Resolución enviada correctamente',
+            'pdf_url' => route('descargar.pdf', ['id' => $sancion->id]) // Opcional
+        ]);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Sanción no encontrada'
+        ], 404);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error("Error enviando resolución: " . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al enviar: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+// protected function generarPdfSancion($sancion)
+// {
+//     return PDF::loadView('sanciones.pdf', [
+//         'sancion' => $sancion,
+//         'fecha_actual' => now()->format('d/m/Y')
+//     ]);
+// }
+
+protected function enviarEmailNotificacion($sancion, $pdfContent, $filename)
+{
+    Mail::to($sancion->docente->email)
+        ->cc('rrhh@institucion.edu')
+        ->send(new NotificacionSancion($sancion, $pdfContent, $filename));
+}
     /**
      * Ver detalles de una sanción específica.
      *
@@ -663,4 +732,5 @@ public function generarPDFSancion($id)
     //         return back()->with('error', 'Ha ocurrido un error al visualizar la sanción: ' . $e->getMessage());
     //     }
     // }
+
 }

@@ -1,7 +1,7 @@
 @extends('layouts.principal')
 @section('titulo', 'Panel del Decano/Coordinador')
 @section('contenido')
-    <!-- Encabezado y bienvenida -->
+        <!-- Encabezado y bienvenida -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-1">Panel Decano</h1>
@@ -138,7 +138,7 @@
         // Recibir los datos de Laravel directamente en JavaScript
         const promedios = @json($promedios);
         const labels = promedios.map(p => p.facultad);
-        const data = promedios.map(p => p.promedio); // promedios
+        const data = promedios.map(p => p.promedio_facultad); // promedios
 
         let chartInstance;
 
@@ -210,7 +210,7 @@
                 const datos = promedios;
 
                 const labels = datos.map(item => item.facultad);
-                const valores = datos.map(item => parseFloat(item.promedio));
+                const valores = datos.map(item => parseFloat(item.promedio_facultad));
 
                 const calificacionesChart = new Chart(ctx, {
                     type: 'doughnut',
@@ -269,11 +269,13 @@
             }
 
             // Puedes personalizar esta función para mostrar más detalles si lo deseas
-            function showCategoryDetails(text) {
-                alert("Facultad: " + text);
+           function showCategoryDetails(facultad) {
+            alert("Facultad: " + facultad);
             }
         });
     </script>
+
+    
 
     <!-- Accesos rápidos y alertas -->
     <div class="row mb-1">
@@ -343,23 +345,23 @@
                                             <div class="list-group-item p-3 alert-docente">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div>
-                                                        <h6 class="mb-1">{{ $alerta->docente }} - Calificación crítica
+                                                        <h6 class="mb-1">{{ $alerta->nombre_docente }} - Calificación crítica
                                                         </h6>
                                                         <p class="mb-0 text-muted small">
                                                             Calificación:
                                                             <span
-                                                                class="text-danger fw-bold">{{ $alerta->calificacion }}/5.0</span>
-                                                            en {{ $alerta->curso }}
+                                                                class="text-danger fw-bold">{{ $alerta->promedio_notas_curso }}/5.0</span>
+                                                            en {{ $alerta->nombre_curso }}
                                                         </p>
                                                     </div>
                                                     <div>
                                                         @php
                                                             // Genera la clase de facultad automáticamente
-                                                            $claseFacultad = 'dept-' . Str::slug($alerta->facultad);
+                                                            $claseFacultad = 'dept-' . Str::slug($alerta->nombre_facultad);
                                                         @endphp
 
                                                         <span
-                                                            class="badge {{ $claseFacultad }}">{{ $alerta->facultad }}</span>
+                                                            class="badge {{ $claseFacultad }}">{{ $alerta->nombre_facultad }}</span>
 
                                                         <a href="{{ route('decano.acta_compromiso') }}"
                                                             class="btn btn-sm btn-outline-danger ms-2">
@@ -501,7 +503,7 @@
                                                             <h4>{{ $docente->nombre_docente }}</h4>
                                                             <p><strong>Curso:</strong> {{ $docente->curso }}</p>
                                                             <p><strong>Calificación:</strong>
-                                                                {{ $docente->promedio_total}}/5.0
+                                                                {{ $docente->promedio_ev_docente}}/5.0
                                                             </p>
                                                         </div>
                                                     </div>

@@ -1,793 +1,845 @@
 @extends('layouts.principal')
 @section('titulo', 'Acta de Compromiso')
 @section('contenido')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <div class="header-acta mb-4">
-        <h1 class="mb-0">Generar Acta de Compromiso para docentes con desempeño < 4</h1>
-    </div>
-
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-
-    @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <ul class="mb-0">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    @endif
-<!-- Lista de Actas de Compromiso Existentes -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title"><i class="fas fa-list me-2"></i>Actas de Compromiso Existentes</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Número de Acta</th>
-                                    <th>Docente</th>
-                                    <th>Fecha</th>
-                                    <th>Calificación</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if(isset($actas) && count($actas) > 0)
-                                    @foreach($actas as $acta)
-                                    <tr>
-                                        <td>{{ $acta->numero_acta ?? 'N/A' }}</td>
-                                        <td>{{ $acta->nombre_docente ?? 'N/A' }} {{ $acta->apellido_docente ?? '' }}</td>
-                                        <td>{{ $acta->fecha_generacion ?? 'N/A' }}</td>
-                                        <td><span class="badge bg-danger">{{ $acta->promedio_total ?? 'N/A' }}</span></td>
-                                        <td>
-                                            <a href="{{ route('decano.acta_compromiso_edit', $acta->id) }}" class="btn btn-sm btn-primary">
-                                                <i class="fas fa-edit"></i> Editar
-                                            </a>
-                                            <a href="{{ route('decano.ver_acta', $acta->id) }}" class="btn btn-sm btn-info">
-                                                <i class="fas fa-eye"></i> Ver
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                @else
-                                    <tr>
-                                        <td colspan="5" class="text-center">No hay actas de compromiso registradas</td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
+    <div class="container-fluid px-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h1 class="h3 mb-0">📋 Actas de Compromiso Registradas</h1>
+                        <p class="mb-0">Gestión completa de actas de compromiso docente</p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Formulario de Acta de Compromiso -->
-    <!-- CORREGIDO: La ruta debe coincidir con la del controlador -->
-    <form action="{{ route('guardar.acta_compromiso') }}" method="POST" enctype="multipart/form-data" class="mb-5" id="actaForm">
-     id="actaForm">
-        @csrf
+        <!-- Estadísticas -->
+        <div class="row mb-4" id="stats-container">
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ $totalActas }}</h3>
+                        <p class="mb-0">Total de Actas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ number_format($promedioGeneral, 2) }}</h3>
+                        <p class="mb-0">Promedio General</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ $actasMes }}</h3>
+                        <p class="mb-0">Actas este Mes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ $actasFirmadas }}</h3>
+                        <p class="mb-0">Actas Firmadas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form action="{{ route('decano.acta_compromiso') }}" method="GET">
+                    <div class="input-group">
+                        <span class="input-group-text">🔍</span>
+                        <input type="text" class="form-control" name="search"
+                            placeholder="Buscar por nombre, apellido, identificación..." value="{{ request('search') }}">
+                        <button type="submit" class="btn btn-primary">Buscar</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6 text-end">
+                <a href="{{ route('decano.acta_compromiso') }}" class="btn btn-outline-primary me-2">
+                    🔄 Actualizar
+                </a>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createActaModal">
+                    ➕ Nueva Acta
+                </button>
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <!-- Tabla de Actas -->
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Formulario de Acta de Compromiso</h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="row">
-                    <div class="col-md-3 text-center">
-                        <div class="avatar-preview mb-3">
-                            <i class="fas fa-user fa-5x text-secondary"></i>
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label class="form-label">Seleccione un docente: <span class="text-danger">*</span></label>
-                                <select class="form-select select2-docentes" id="docenteSelect" name="id_docente" required>
-                                    <option value="">Seleccione un docente</option>
-                                    @if (isset($docentesbusqueda) && count($docentesbusqueda) > 0)
-                                        @foreach ($docentesbusqueda as $docente)
-                                        <option value="{{ $docente->id_docente }}"
-                                                data-nombre="{{ $docente->nombre_docente }}"
-                                                data-apellido="{{ $docente->apellido_docente }}"
-                                                data-identificacion="{{ $docente->identificacion_docente }}"
-                                                data-curso="{{ $docente->programa ?? $docente->curso }}"
-                                                data-promedio="{{ $docente->promedio_total }}"
-                                                {{ old('id_docente') == $docente->id_docente ? 'selected' : '' }}>
-                                                {{ $docente->nombre_docente }} {{ $docente->apellido_docente }} - {{ $docente->programa ?? $docente->curso }}
-                                        </option>
-                                        @endforeach
-                                    @else
-                                        <option value="">No hay docentes disponibles.</option>
-                                    @endif
-                                </select>
-                                @error('id_docente')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Número de Acta: <span class="text-danger">*</span></label>
-                                <input type="text" name="numero_acta" class="form-control @error('numero_acta') is-invalid @enderror" 
-                                       value="{{ old('numero_acta') }}" required>
-                                @error('numero_acta')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Fecha de Generación: <span class="text-danger">*</span></label>
-                                <input type="date" name="fecha_generacion" class="form-control @error('fecha_generacion') is-invalid @enderror" 
-                                       value="{{ old('fecha_generacion', date('Y-m-d')) }}" required>
-                                @error('fecha_generacion')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Nombre:</label>
-                                <input type="text" name="nombre_docente" id="nombre_docente" 
-                                       class="form-control @error('nombre_docente') is-invalid @enderror" 
-                                        value="{{ old('nombre_docente') }}">
-                                @error('nombre_docente')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Apellido:</label>
-                                <input type="text" name="apellido_docente" id="apellido_docente" 
-                                       class="form-control @error('apellido_docente') is-invalid @enderror" 
-                                        value="{{ old('apellido_docente') }}">
-                                @error('apellido_docente')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="identificacion_docente" class="form-label">Identificación:</label>
-                                    <input type="text" id="identificacion_docente" name="identificacion_docente" 
-                                           class="form-control @error('identificacion_docente') is-invalid @enderror" 
-                                           value="{{ old('identificacion_docente') }}">
-                                    @error('identificacion_docente')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Curso:</label>
-                                <input type="text" name="curso" id="curso" 
-                                       class="form-control @error('curso') is-invalid @enderror" 
-                                        value="{{ old('curso') }}">
-                                @error('curso')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Calificación Final del Docente:</label>
-                                <input type="number" name="promedio_total" id="promedio_total" 
-                                       class="form-control @error('promedio_total') is-invalid @enderror" 
-                                       step="0.01" min="0" max="5" value="{{ old('promedio_total') }}">
-                                @error('promedio_total')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <h5>Resumen de Retroalimentación: <span class="text-danger">*</span></h5>
-                        <textarea name="retroalimentacion" id="summernote" 
-                                  class="form-control @error('retroalimentacion') is-invalid @enderror" 
-                                  rows="5" required>{{ old('retroalimentacion', 'Aquí el decano hará sus comentarios hacia el respectivo docente...') }}</textarea>
-                        @error('retroalimentacion')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-6 offset-md-3">
-                        <h5 class="text-center mb-3">Firma de Decano/ Coordinador</h5>
-                        <div class="firma-box">
-                            <div id="firma-preview" class="mb-3 d-none">
-                                <img id="firma-imagen" src="#" alt="Vista previa de la firma" class="img-fluid"
-                                    style="max-height: 100px;">
-                            </div>
-                            <div id="firma-placeholder" class="text-center text-muted mb-3">
-                                <i class="fas fa-signature fa-3x"></i>
-                                <p class="mt-2">Seleccione una imagen de firma</p>
-                            </div>
-                            <input type="file" name="firma" id="firma-input" 
-                                   class="form-control @error('firma') is-invalid @enderror" 
-                                   accept=".png,.jpg,.jpeg">
-                            @error('firma')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-12 text-center">
-                        <button type="submit" class="btn btn-primary me-2" id="guardarBtn">
-                            <i class="fas fa-save me-2"></i>Guardar Acta
-                        </button>
-                        <button type="reset" class="btn btn-secondary" id="limpiarBtn">
-                            <i class="fas fa-undo me-2"></i>Limpiar Formulario
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-    <!-- Fin del formulario de Acta de Compromiso -->
-     <!-- Listado de Actas de Compromiso -->
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Actas de Compromiso Registradas</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Número</th>
-                            <th>Fecha</th>
-                            <th>Docente</th>
-                            <th>Asignatura</th>
-                            <th>Calificación</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if(isset($actas) && count($actas) > 0)
-                            @foreach($actas as $acta)
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Número</th>
+                                <th>Fecha</th>
+                                <th>Docente</th>
+                                <th>Identificación</th>
+                                <th>Curso</th>
+                                <th>Promedio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($actas as $acta)
                                 <tr>
                                     <td>{{ $acta->numero_acta }}</td>
-                                    <td>{{ $acta->fecha_generacion->format('d/m/Y') }}</td>
-                                    <td>{{ $acta->nombre_docente }} {{ $acta->apellido_docente }}</td>
-                                    <td>{{ $acta->asignatura }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($acta->fecha_generacion)->format('d/m/Y') }}</td>
                                     <td>
-                                        <span class="badge {{ $acta->calificacion_final < 3.0 ? 'bg-danger' : ($acta->calificacion_final < 3.5 ? 'bg-warning' : 'bg-info') }}">
-                                            {{ number_format($acta->calificacion_final, 2) }}
+                                        {{ $acta->nombre_docente }} {{ $acta->apellido_docente }}
+                                    </td>
+                                    <td>{{ $acta->identificacion_docente }}</td>
+                                    <td>{{ $acta->curso }}</td>
+                                    <td>
+                                        <span
+                                            class="badge {{ $acta->promedio_total < 3 ? 'bg-danger' : ($acta->promedio_total < 4 ? 'bg-warning' : 'bg-success') }}">
+                                            {{ number_format($acta->promedio_total, 2) }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge {{ $acta->enviado ? 'bg-success' : 'bg-secondary' }}">
-                                            {{ $acta->enviado ? 'Enviada' : 'Pendiente' }}
+                                        <span class="badge {{ $acta->firma ? 'bg-success' : 'bg-secondary' }}">
+                                            {{ $acta->firma ? 'Firmada' : 'Pendiente' }}
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ route('decano.editar_acta', $acta->id_acta) }}" class="btn btn-sm btn-primary">
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-primary btn-ver-acta" data-bs-toggle="modal"
+                                                data-bs-target="#viewActaModal" data-numero="{{ $acta->numero_acta }}"
+                                                data-fecha="{{ \Carbon\Carbon::parse($acta->fecha_generacion)->format('d/m/Y') }}"
+                                                data-docente="{{ $acta->nombre_docente }} {{ $acta->apellido_docente }}"
+                                                data-identificacion="{{ $acta->identificacion_docente }}"
+                                                data-curso="{{ $acta->curso }}"
+                                                data-promedio="{{ number_format($acta->promedio_total, 2) }}"
+                                                data-retroalimentacion="{{ $acta->retroalimentacion }}"
+                                                data-firma-url="{{ $acta->firma_url ?? '' }}">
+                                                VER
+                                            </button>
+
+
+                                            <button class="btn btn-primary btn-editar-acta" data-bs-toggle="modal"
+                                                data-bs-target="#editActaModal" data-id="{{ $acta->id }}"
+                                                data-numero="{{ $acta->numero_acta }}"
+                                                data-fecha="{{ $acta->fecha_generacion }}"
+                                                data-nombre="{{ $acta->nombre_docente }}"
+                                                data-apellido="{{ $acta->apellido_docente }}"
+                                                data-identificacion="{{ $acta->identificacion_docente }}"
+                                                data-curso="{{ $acta->curso }}"
+                                                data-promedio="{{ $acta->promedio_total }}"
+                                                data-retroalimentacion="{{ $acta->retroalimentacion }}"
+                                                data-firma-url="{{ $acta->firma_url ?? '' }}">
                                                 <i class="fas fa-edit"></i>
-                                            </a>
-                                            @if(!$acta->enviado)
-                                                <form action="{{ route('decano.enviar_acta', $acta->id_acta) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <button type="submit" class="btn btn-sm btn-success">
-                                                        <i class="fas fa-paper-plane"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                            <form action="{{ route('decano.eliminar_acta', $acta->id_acta) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar esta acta?')">
+                                            </button>
+
+
+
+                                            <form action="{{ route('decano.acta_compromiso.destroy', $acta->id) }}"
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                <button type="submit" class="btn btn-danger"
+                                                    onclick="return confirm('¿Está seguro de eliminar esta acta?')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="7" class="text-center">No hay actas de compromiso registradas</td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                                        <h3>No hay actas de compromiso registradas</h3>
+                                        <p class="text-muted">Comienza creando tu primera acta de compromiso</p>
+                                        <button class="btn btn-primary" data-bs-toggle="modal"
+                                            data-bs-target="#createActaModal">
+                                            ➕ Crear Primera Acta
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Paginación -->
+                @if ($actas->hasPages())
+                    <div class="mt-3">
+                        {{ $actas->appends(request()->query())->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
 
+    <!-- Modal Crear Acta -->
 
-    <!-- Mostrar mensajes de éxito o error -->
-    {{-- @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <!-- Estilos para las promedio_totales -->
-    <style>
-    .promedio_total-baja {
-        background-color: #ffcccc !important;
-    }
-    .promedio_total-media {
-        background-color: #ffffcc !important;
-    }
-    .promedio_total-alta {
-        background-color: #ccffcc !important;
-    }
-    </style>
-
-    <!-- Scripts para el manejo del formulario -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Scripts cargados correctamente');
-        
-        // Configurar CSRF para peticiones AJAX
-        if (typeof $ !== 'undefined') {
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-        }
-
-        // 1. MANEJO DEL SELECT DE DOCENTES
-        $('#docenteSelect').on('change', function() {
-            console.log('Docente seleccionado:', $(this).val());
-            
-            var selectedOption = $(this).find('option:selected');
-            
-            if (selectedOption.val()) {
-                $('#nombre_docente').val(selectedOption.data('nombre') || '');
-                $('#apellido_docente').val(selectedOption.data('apellido') || '');
-                $('#identificacion_docente').val(selectedOption.data('identificacion') || '');
-                $('#curso').val(selectedOption.data('curso') || '');
-                $('#promedio_total').val(selectedOption.data('promedio') || '');
-
-                // Cambiar el color del campo de calificación según el valor
-                const promedio_totalInput = document.getElementById('promedio_total');
-                promedio_totalInput.classList.remove('promedio_total-baja', 'promedio_total-media', 'promedio_total-alta');
-
-                const promedio_totalValue = parseFloat(selectedOption.data('promedio'));
-                if (promedio_totalValue < 3) {
-                    promedio_totalInput.classList.add('promedio_total-baja');
-                } else if (promedio_totalValue < 4) {
-                    promedio_totalInput.classList.add('promedio_total-media');
-                } else {
-                    promedio_totalInput.classList.add('promedio_total-alta');
-                }
-            } else {
-                // Limpiar campos si no hay selección
-                $('#nombre_docente, #apellido_docente, #identificacion_docente, #curso, #promedio_total').val('');
-            }
-        });
-
-        // 2. MANEJO DE LA VISTA PREVIA DE LA FIRMA
-        $('#firma-input').on('change', function(e) {
-            var file = e.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#firma-imagen').attr('src', e.target.result);
-                    $('#firma-preview').removeClass('d-none');
-                    $('#firma-placeholder').addClass('d-none');
-                }
-                reader.readAsDataURL(file);
-            } else {
-                $('#firma-preview').addClass('d-none');
-                $('#firma-placeholder').removeClass('d-none');
-            }
-        });
-
-        // 3. VALIDACIÓN Y MANEJO DEL ENVÍO DEL FORMULARIO
-        $('#actaForm').on('submit', function(e) {
-            console.log('Formulario enviándose...');
-            console.log('Datos del formulario:', new FormData(this));
-            
-            var isValid = true;
-            var errorMessages = [];
-
-            // Validar docente seleccionado
-            if (!$('#docenteSelect').val()) {
-                isValid = false;
-                errorMessages.push('Debe seleccionar un docente');
-                $('#docenteSelect').addClass('is-invalid');
-            } else {
-                $('#docenteSelect').removeClass('is-invalid');
-            }
-
-            // Validar número de acta
-            if (!$('input[name="numero_acta"]').val().trim()) {
-                isValid = false;
-                errorMessages.push('El número de acta es requerido');
-                $('input[name="numero_acta"]').addClass('is-invalid');
-            } else {
-                $('input[name="numero_acta"]').removeClass('is-invalid');
-            }
-
-            // Validar retroalimentación
-            var retroalimentacion = $('textarea[name="retroalimentacion"]').val().trim();
-            if (!retroalimentacion || retroalimentacion === 'Aquí el decano hará sus comentarios hacia el respectivo docente...') {
-                isValid = false;
-                errorMessages.push('Debe proporcionar una retroalimentación válida');
-                $('textarea[name="retroalimentacion"]').addClass('is-invalid');
-            } else {
-                $('textarea[name="retroalimentacion"]').removeClass('is-invalid');
-            }
-
-            // Si hay errores, prevenir envío
-            if (!isValid) {
-                e.preventDefault();
-                alert('Por favor corrija los siguientes errores:\n' + errorMessages.join('\n'));
-                console.log('Errores de validación:', errorMessages);
-                return false;
-            }
-
-            // Si todo está bien, cambiar estado del botón
-            $('#guardarBtn')
-                .prop('disabled', true)
-                .html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
-            
-            console.log('Formulario válido, enviando...');
-        });
-
-        // 4. MANEJO DEL BOTÓN DE LIMPIAR
-        $('#limpiarBtn').on('click', function() {
-            console.log('Limpiando formulario...');
-            
-            setTimeout(function() {
-                // Limpiar vista previa de firma
-                $('#firma-preview').addClass('d-none');
-                $('#firma-placeholder').removeClass('d-none');
-                
-                // Limpiar Summernote si está disponible
-                if (typeof $.fn.summernote !== 'undefined') {
-                    $('#summernote').summernote('code', 'Aquí el decano hará sus comentarios hacia el respectivo docente...');
-                } else {
-                    $('#summernote').val('Aquí el decano hará sus comentarios hacia el respectivo docente...');
-                }
-                
-                // Remover clases de validación
-                $('.is-invalid').removeClass('is-invalid');
-                
-                // Restablecer botón
-                $('#guardarBtn')
-                    .prop('disabled', false)
-                    .html('<i class="fas fa-save me-2"></i>Guardar Acta');
-                    
-            }, 100);
-        });
-
-        // 5. INICIALIZAR SUMMERNOTE SI ESTÁ DISPONIBLE
-        if (typeof $.fn.summernote !== 'undefined') {
-            $('#summernote').summernote({
-                height: 150,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['insert', ['link']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
-            });
-        }
-
-        // 6. RESTABLECER BOTÓN SI HAY ERRORES DE VALIDACIÓN DEL SERVIDOR
-        if ($('.alert-danger').length > 0) {
-            $('#guardarBtn')
-                .prop('disabled', false)
-                .html('<i class="fas fa-save me-2"></i>Guardar Acta');
-        }
-
-        console.log('Configuración completa');
-    });
-    </script> --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    <!-- Estilos para las promedio_totales -->
-    <style>
-    .promedio_total-baja {
-        background-color: #ffcccc !important;
-    }
-    .promedio_total-media {
-        background-color: #ffffcc !important;
-    }
-    .promedio_total-alta {
-        background-color: #ccffcc !important;
-    }
-    </style>
-
-    <!-- Scripts para el manejo del formulario -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Scripts cargados correctamente');
-        
-        // Configurar CSRF para peticiones AJAX
-        if (typeof $ !== 'undefined') {
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-        }
-
-        // Función para mostrar mensajes de alerta
-        function showAlert(type, message) {
-            // Remover alertas existentes
-            $('.alert').remove();
-            
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const iconClass = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-            
-            const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="${iconClass} me-2"></i>${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="modal fade" id="createActaModal" tabindex="-1" aria-labelledby="createActaModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="createActaModalLabel">Nueva Acta de Compromiso</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
-            `;
-            
-            // Insertar la alerta al inicio del contenedor principal
-            $('#actaForm').prepend(alertHtml);
-            
-            // Scroll hacia arriba para mostrar la alerta
-            $('html, body').animate({scrollTop: 0}, 500);
-        }
+                <form id="actaForm" action="{{ route('decano.acta_compromiso.store') }}" method="POST"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Docente:</label>
+                                <select class="form-select" id="docenteSelect" name="id_docente" required>
+                                    <option value="">Seleccione un docente</option>
+                                    @foreach ($docentesbusqueda as $docente)
+                                        <option value="{{ $docente->id_docente }}"
+                                            data-nombre="{{ $docente->nombre_docente }}"
+                                            data-apellido="{{ $docente->apellido_docente }}"
+                                            data-identificacion="{{ $docente->identificacion_docente }}"
+                                            data-curso="{{ $docente->curso }}"
+                                            data-promedio="{{ $docente->promedio_total }}">
+                                            {{ $docente->nombre_docente }} {{ $docente->apellido_docente }} -
+                                            {{ $docente->curso }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha de Generación:</label>
+                                <input type="date" class="form-control" name="fecha_generacion"
+                                    value="{{ date('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre:</label>
+                                <textarea type="text" class ="form-control" name="nombre_docente" id="nombreDocente" readonly></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apellido:</label>
+                                <textarea type="text" class ="form-control" name="apellido_docente" id="apellidoDocente" readonly></textarea>
+                            </div>
+                        </div>
 
-        // 1. MANEJO DEL SELECT DE DOCENTES
-        $('#docenteSelect').on('change', function() {
-            console.log('Docente seleccionado:', $(this).val());
-            
-            var selectedOption = $(this).find('option:selected');
-            
-            if (selectedOption.val()) {
-                $('#nombre_docente').val(selectedOption.data('nombre') || '');
-                $('#apellido_docente').val(selectedOption.data('apellido') || '');
-                $('#identificacion_docente').val(selectedOption.data('identificacion') || '');
-                $('#curso').val(selectedOption.data('curso') || '');
-                $('#promedio_total').val(selectedOption.data('promedio') || '');
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Identificación:</label>
+                                <textarea type="text" class ="form-control" name="identificacion_docente" id="identificacionDocente" readonly></textarea>
 
-                // Cambiar el color del campo de calificación según el valor
-                const promedio_totalInput = document.getElementById('promedio_total');
-                promedio_totalInput.classList.remove('promedio_total-baja', 'promedio_total-media', 'promedio_total-alta');
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Curso:</label>
+                                <textarea type="text" class ="form-control" name="curso" id="curso" readonly></textarea>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Promedio Total:</label>
+                                <textarea type="text" class ="form-control" name="promedio_total" id="promedio_docente" readonly></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Firma Digital:</label>
+                                <input type="file" class="form-control" name="firma" accept="image/*">
+                            </div>
+                        </div>
 
-                const promedio_totalValue = parseFloat(selectedOption.data('promedio'));
-                if (promedio_totalValue < 3) {
-                    promedio_totalInput.classList.add('promedio_total-baja');
-                } else if (promedio_totalValue < 4) {
-                    promedio_totalInput.classList.add('promedio_total-media');
-                } else {
-                    promedio_totalInput.classList.add('promedio_total-alta');
-                }
-            } else {
-                // Limpiar campos si no hay selección
-                $('#nombre_docente, #apellido_docente, #identificacion_docente, #curso, #promedio_total').val('');
-            }
+                        <div class="mb-3">
+                            <label class="form-label">Retroalimentación:</label>
+                            <textarea class="form-control" name="retroalimentacion" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Acta</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Ver Acta -->
+    <div class="modal fade" id="viewActaModal" tabindex="-1" aria-labelledby="viewActaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="viewActaModalLabel">Detalles del Acta de Compromiso</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Número de Acta:</label>
+                            <p id="view-numero-acta" class="form-control-plaintext"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha de Generación:</label>
+                            <p id="view-fecha-generacion" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Docente:</label>
+                            <p id="view-docente" class="form-control-plaintext"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Identificación:</label>
+                            <p id="view-identificacion" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Curso/Asignatura:</label>
+                            <p id="view-curso" class="form-control-plaintext"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Promedio:</label>
+                            <p id="view-promedio" class="form-control-plaintext"></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Retroalimentación:</label>
+                        <div id="view-retroalimentacion" class="border p-3 rounded bg-light"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Firma Digital:</label>
+                        <div id="view-firma-container" class="text-center">
+                            <img id="view-firma-imagen" src="" class="img-fluid mb-2"
+                                style="max-height: 150px; display: none;">
+                            <div id="view-firma-placeholder" class="text-muted py-4 border rounded">
+                                <i class="fas fa-signature fa-4x"></i>
+                                <p class="mt-2">No se ha registrado firma digital</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="btn-imprimir-acta">
+                        <i class="fas fa-print me-1"></i> Imprimir Acta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Editar Acta -->
+    <div class="modal fade" id="editActaModal" tabindex="-1" aria-labelledby="editActaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editActaModalLabel">Editar Acta de Compromiso</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+
+                <form id="editActaForm" method="PUT" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" id="edit-acta-id" name="id">
+
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Número de Acta:</label>
+                                <input type="text" class="form-control" id="edit-numero-acta" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha de Generación:</label>
+                                <input type="date" class="form-control" id="edit-fecha-generacion"
+                                    name="fecha_generacion" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nombre Docente:</label>
+                                <input type="text" class="form-control" id="edit-nombre-docente"
+                                    name="nombre_docente" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apellido Docente:</label>
+                                <input type="text" class="form-control" id="edit-apellido-docente"
+                                    name="apellido_docente" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Identificación:</label>
+                                <input type="text" class="form-control" id="edit-identificacion"
+                                    name="identificacion_docente" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Curso/Asignatura:</label>
+                                <input type="text" class="form-control" id="edit-curso" name="curso" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Promedio:</label>
+                                <input type="number" step="0.01" min="0" max="5" class="form-control"
+                                    id="edit-promedio" name="promedio_total" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Estado:</label>
+                                <div class="form-control" id="edit-estado-promedio" readonly>
+                                    <span id="edit-estado-texto">No seleccionado</span>
+                                    <span class="badge ms-2" id="edit-estado-badge">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Retroalimentación:</label>
+                            <textarea class="form-control" id="edit-retroalimentacion" name="retroalimentacion" rows="4" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Firma Digital:</label>
+                            <div class="border p-3 text-center">
+                                <img id="edit-firma-preview" src="" class="img-fluid mb-2"
+                                    style="max-height: 150px; display: none;">
+                                <div id="edit-firma-placeholder" class="text-muted py-4">
+                                    <i class="fas fa-signature fa-3x"></i>
+                                    <p class="mt-2">Firma actual no disponible</p>
+                                </div>
+                                <input type="file" class="form-control mt-2" id="edit-firma-input" name="firma"
+                                    accept="image/*">
+                                <small class="text-muted">Dejar en blanco para mantener la firma actual</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" id="btn-guardar-cambios">Guardar Cambios</button>
+                        {{-- <button type="submit" class="btn btn-primary"  id="btn-guardar-cambios">Guardar Cambios</button> --}}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const botonesVer = document.querySelectorAll('.btn-ver-acta');
+
+            botonesVer.forEach(boton => {
+                boton.addEventListener('click', function() {
+                    // Setear campos de texto
+                    document.getElementById('view-numero-acta').textContent = this.dataset.numero;
+                    document.getElementById('view-fecha-generacion').textContent = this.dataset
+                        .fecha;
+                    document.getElementById('view-docente').textContent = this.dataset.docente;
+                    document.getElementById('view-identificacion').textContent = this.dataset
+                        .identificacion;
+                    document.getElementById('view-curso').textContent = this.dataset.curso;
+                    document.getElementById('view-promedio').textContent = this.dataset.promedio;
+                    document.getElementById('view-retroalimentacion').textContent = this.dataset
+                        .retroalimentacion;
+
+                    // Firma digital
+                    const firmaUrl = this.dataset.firmaUrl;
+                    const firmaImagen = document.getElementById('view-firma-imagen');
+                    const firmaPlaceholder = document.getElementById('view-firma-placeholder');
+
+                    if (firmaUrl) {
+                        firmaImagen.src = firmaUrl;
+                        firmaImagen.style.display = 'block';
+                        firmaPlaceholder.style.display = 'none';
+                    } else {
+                        firmaImagen.src = '';
+                        firmaImagen.style.display = 'none';
+                        firmaPlaceholder.style.display = 'block';
+                    }
+                });
+            });
+        });
+    </script>
+
+
+
+    <script>
+        document.getElementById('docenteSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+
+            document.getElementById('nombreDocente').value = selectedOption.getAttribute('data-nombre') || '';
+            document.getElementById('apellidoDocente').value = selectedOption.getAttribute('data-apellido') || '';
+            document.getElementById('identificacionDocente').value = selectedOption.getAttribute(
+                'data-identificacion') || '';
+            document.getElementById('curso').value = selectedOption.getAttribute('data-curso') || '';
+            document.getElementById('promedio_docente').value = selectedOption.getAttribute('data-promedio') || '';
+        });
+    </script>
+    <script>
+        // Manejar carga de firma (código original mejorado)
+        $('#seleccionar-firma').click(function() {
+            $('#firma-input').trigger('click');
         });
 
-        // 2. MANEJO DE LA VISTA PREVIA DE LA FIRMA
-        $('#firma-input').on('change', function(e) {
-            var file = e.target.files[0];
-            if (file) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#firma-imagen').attr('src', e.target.result);
-                    $('#firma-preview').removeClass('d-none');
-                    $('#firma-placeholder').addClass('d-none');
-                }
-                reader.readAsDataURL(file);
-            } else {
-                $('#firma-preview').addClass('d-none');
-                $('#firma-placeholder').removeClass('d-none');
+        $('#firma-input').change(function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (!file.type.match('image.*')) {
+                alert('Por favor seleccione un archivo de imagen');
+                return;
             }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#firma-imagen').attr('src', e.target.result);
+                $('#firma-preview').removeClass('d-none');
+                $('#firma-placeholder').addClass('d-none');
+                $('#eliminar-firma').removeClass('d-none');
+            };
+            reader.readAsDataURL(file);
         });
 
-        // 3. VALIDACIÓN Y MANEJO DEL ENVÍO DEL FORMULARIO (MODIFICADO PARA API)
+        $('#eliminar-firma').click(function() {
+            $('#firma-input').val('');
+            $('#firma-imagen').attr('src', '');
+            $('#firma-preview').addClass('d-none');
+            $('#firma-placeholder').removeClass('d-none');
+            $(this).addClass('d-none');
+        });
+
+        // Manejar envío del formulario
         $('#actaForm').on('submit', function(e) {
-            e.preventDefault(); // Prevenir envío tradicional del formulario
-            
-            console.log('Formulario enviándose via AJAX...');
-            
-            var isValid = true;
-            var errorMessages = [];
+            e.preventDefault();
+            const form = $(this);
+            const formData = new FormData(this);
 
-            // Validar docente seleccionado
-            if (!$('#docenteSelect').val()) {
-                isValid = false;
-                errorMessages.push('Debe seleccionar un docente');
-                $('#docenteSelect').addClass('is-invalid');
-            } else {
-                $('#docenteSelect').removeClass('is-invalid');
-            }
-
-            // Validar número de acta
-            if (!$('input[name="numero_acta"]').val().trim()) {
-                isValid = false;
-                errorMessages.push('El número de acta es requerido');
-                $('input[name="numero_acta"]').addClass('is-invalid');
-            } else {
-                $('input[name="numero_acta"]').removeClass('is-invalid');
-            }
-
-            // Validar retroalimentación
-            var retroalimentacion = $('textarea[name="retroalimentacion"]').val().trim();
-            if (!retroalimentacion || retroalimentacion === 'Aquí el decano hará sus comentarios hacia el respectivo docente...') {
-                isValid = false;
-                errorMessages.push('Debe proporcionar una retroalimentación válida');
-                $('textarea[name="retroalimentacion"]').addClass('is-invalid');
-            } else {
-                $('textarea[name="retroalimentacion"]').removeClass('is-invalid');
-            }
-
-            // Si hay errores, mostrar alerta y detener
-            if (!isValid) {
-                showAlert('error', 'Por favor corrija los siguientes errores:\n' + errorMessages.join('\n'));
-                console.log('Errores de validación:', errorMessages);
-                return false;
-            }
-
-            // Cambiar estado del botón
-            $('#guardarBtn')
-                .prop('disabled', true)
-                .html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
-
-            // Preparar FormData para envío
-            var formData = new FormData(this);
-            
-            // Realizar petición AJAX
             $.ajax({
-                url: $(this).attr('action') || '/api/actas-compromiso', // URL de la API
-                method: 'POST',
+                url: form.attr('action'),
+                type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
-                dataType: 'json',
                 success: function(response) {
-                    console.log('Respuesta exitosa:', response);
-                    
-                    // Mostrar mensaje de éxito
                     if (response.success) {
-                        showAlert('success', response.message || 'Acta de compromiso creada correctamente');
-                        
-                        // Opcional: Limpiar formulario después de éxito
-                        setTimeout(function() {
-                            $('#limpiarBtn').click();
-                        }, 2000);
-                        
+                        toastr.success(response.message);
+                        $('#createActaModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
                     } else {
-                        showAlert('error', response.message || 'Error al procesar la solicitud');
+                        toastr.error(response.message);
                     }
                 },
-                error: function(xhr, status, error) {
-                    console.error('Error en la petición:', xhr, status, error);
-                    
-                    let errorMessage = 'Error al guardar el acta de compromiso';
-                    
-                    if (xhr.responseJSON) {
-                        if (xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        } else if (xhr.responseJSON.errors) {
-                            // Manejar errores de validación del servidor
-                            let errors = xhr.responseJSON.errors;
-                            let errorList = [];
-                            
-                            for (let field in errors) {
-                                errorList.push(errors[field][0]);
-                            }
-                            
-                            errorMessage = errorList.join('\n');
-                        }
-                    } else if (xhr.status === 422) {
-                        errorMessage = 'Error de validación. Por favor revise los datos ingresados.';
-                    } else if (xhr.status === 500) {
-                        errorMessage = 'Error interno del servidor. Por favor intente nuevamente.';
+                error: function(xhr) {
+                    let errorMsg = 'Error al procesar la solicitud';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
                     }
-                    
-                    showAlert('error', errorMessage);
-                },
-                complete: function() {
-                    // Restablecer botón siempre
-                    $('#guardarBtn')
-                        .prop('disabled', false)
-                        .html('<i class="fas fa-save me-2"></i>Guardar Acta');
+                    toastr.error(errorMsg);
+                    console.error(xhr.responseText);
                 }
             });
         });
 
-        // 4. MANEJO DEL BOTÓN DE LIMPIAR
-        $('#limpiarBtn').on('click', function() {
-            console.log('Limpiando formulario...');
-            
-            setTimeout(function() {
-                // Limpiar vista previa de firma
-                $('#firma-preview').addClass('d-none');
-                $('#firma-placeholder').removeClass('d-none');
-                
-                // Limpiar Summernote si está disponible
-                if (typeof $.fn.summernote !== 'undefined') {
-                    $('#summernote').summernote('code', 'Aquí el decano hará sus comentarios hacia el respectivo docente...');
-                } else {
-                    $('#summernote').val('Aquí el decano hará sus comentarios hacia el respectivo docente...');
-                }
-                
-                // Remover clases de validación
-                $('.is-invalid').removeClass('is-invalid');
-                
-                // Remover alertas
-                $('.alert').remove();
-                
-                // Restablecer botón
-                $('#guardarBtn')
-                    .prop('disabled', false)
-                    .html('<i class="fas fa-save me-2"></i>Guardar Acta');
-                    
-            }, 100);
-        });
 
-        // 5. INICIALIZAR SUMMERNOTE SI ESTÁ DISPONIBLE
-        if (typeof $.fn.summernote !== 'undefined') {
-            $('#summernote').summernote({
-                height: 150,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['insert', ['link']],
-                    ['view', ['fullscreen', 'codeview', 'help']]
-                ]
+        // Función para abrir modal de visualización
+        function openViewModal(actaId) {
+            $.ajax({
+                url: `/actas-compromiso/${actaId}`,
+                type: 'GET',
+                success: function(response) {
+                    // Llenar datos en el modal
+                    $('#view-numero-acta').text(response.numero_acta);
+                    $('#view-fecha-generacion').text(formatDate(response.fecha_generacion));
+                    $('#view-docente').text(`${response.nombre_docente} ${response.apellido_docente}`);
+                    $('#view-identificacion').text(response.identificacion_docente);
+                    $('#view-curso').text(response.curso);
+                    $('#view-promedio').html(
+                        `<span class="badge ${getScoreBadgeClass(response.promedio_total)}">${response.promedio_total}</span>`
+                    );
+                    $('#view-retroalimentacion').text(response.retroalimentacion);
+
+                    // Manejar imagen de firma
+                    if (response.firma) {
+                        $('#view-firma-imagen').attr('src', `/storage/${response.firma}`).show();
+                        $('#view-firma-placeholder').hide();
+                    } else {
+                        $('#view-firma-imagen').hide();
+                        $('#view-firma-placeholder').show();
+                    }
+
+                    // Mostrar modal
+                    $('#viewActaModal').modal('show');
+                },
+                error: function(xhr) {
+                    toastr.error('Error al cargar los datos del acta');
+                    console.error(xhr.responseText);
+                }
             });
         }
 
-        // 6. RESTABLECER BOTÓN SI HAY ERRORES DE VALIDACIÓN DEL SERVIDOR
-        if ($('.alert-danger').length > 0) {
-            $('#guardarBtn')
-                .prop('disabled', false)
-                .html('<i class="fas fa-save me-2"></i>Guardar Acta');
+        // Función para abrir modal de edición
+        function openEditModal(actaId) {
+            $.ajax({
+                url: `/actas-compromiso/${actaId}/edit`,
+                type: 'GET',
+                success: function(response) {
+                    // Configurar formulario
+                    $('#editActaForm').attr('action', `/actas-compromiso/${response.id}`);
+                    $('#edit-acta-id').val(response.id);
+                    $('#edit-numero-acta').val(response.numero_acta);
+                    $('#edit-fecha-generacion').val(response.fecha_generacion);
+                    $('#edit-nombre-docente').val(response.nombre_docente);
+                    $('#edit-apellido-docente').val(response.apellido_docente);
+                    $('#edit-identificacion').val(response.identificacion_docente);
+                    $('#edit-curso').val(response.curso);
+                    $('#edit-promedio').val(response.promedio_total);
+                    $('#edit-retroalimentacion').val(response.retroalimentacion);
+
+                    // Configurar estado del promedio
+                    updateScoreStatus(response.promedio_total);
+
+                    // Configurar firma
+                    if (response.firma) {
+                        $('#edit-firma-preview').attr('src', `/storage/${response.firma}`).show();
+                        $('#edit-firma-placeholder').hide();
+                    } else {
+                        $('#edit-firma-preview').hide();
+                        $('#edit-firma-placeholder').show();
+                    }
+
+                    // Mostrar modal
+                    $('#editActaModal').modal('show');
+                },
+                error: function(xhr) {
+                    toastr.error('Error al cargar los datos para edición');
+                    console.error(xhr.responseText);
+                }
+            });
         }
 
-        console.log('Configuración completa');
-    });
+        // Función para actualizar el estado del promedio
+        function updateScoreStatus(promedio) {
+            const badge = $('#edit-estado-badge');
+            const text = $('#edit-estado-texto');
+
+            badge.text(promedio);
+            badge.removeClass('bg-danger bg-warning bg-success');
+
+            if (promedio < 3) {
+                text.text('Bajo Desempeño');
+                badge.addClass('bg-danger');
+            } else if (promedio < 4) {
+                text.text('Desempeño Regular');
+                badge.addClass('bg-warning text-dark');
+            } else {
+                text.text('Buen Desempeño');
+                badge.addClass('bg-success');
+            }
+        }
+
+        // Función para formatear fecha
+        function formatDate(dateString) {
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            return new Date(dateString).toLocaleDateString('es-ES', options);
+        }
+
+        // Función para obtener clase CSS del badge según el promedio
+        function getScoreBadgeClass(promedio) {
+            if (promedio < 3) return 'bg-danger';
+            if (promedio < 4) return 'bg-warning text-dark';
+            return 'bg-success';
+        }
+
+        // Eventos para los botones de acción en la tabla
+        $(document).on('click', '.btn-view-acta', function() {
+            const actaId = $(this).data('id');
+            openViewModal(actaId);
+        });
+
+        $(document).on('click', '.btn-edit-acta', function() {
+            const actaId = $(this).data('id');
+            openEditModal(actaId);
+        });
+
+        // Manejar cambio de promedio en edición
+        $('#edit-promedio').on('input', function() {
+            updateScoreStatus($(this).val());
+        });
+
+        // Manejar vista previa de firma en edición
+        $('#edit-firma-input').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#edit-firma-preview').attr('src', e.target.result).show();
+                    $('#edit-firma-placeholder').hide();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Manejar envío del formulario de edición
+        $('#editActaForm').on('submit', function(e) {
+            e.preventDefault();
+            const form = $(this);
+            const formData = new FormData(this);
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        $('#editActaModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    let errorMsg = 'Error al actualizar el acta';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    toastr.error(errorMsg);
+                    console.error(xhr.responseText);
+                }
+            });
+        });
+
+        // Botón para imprimir acta
+        $('#btn-imprimir-acta').click(function() {
+            window.print();
+        });
+    </script>
+    //SCRIP PARA AUTOCOMPLETAR EL MODAL EDITAR ACTA
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botón de editar acta
+            const botonesEditar = document.querySelectorAll('.btn-editar-acta');
+
+            botonesEditar.forEach(boton => {
+                boton.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const form = document.getElementById('editActaForm');
+                    form.action =
+                        `{{ route('decano.acta_compromiso.update', '') }}/${id}`; // Reemplaza con tu ruta real (ver más abajo)
+
+                    document.getElementById('edit-acta-id').value = id;
+                    document.getElementById('edit-numero-acta').value = this.dataset.numero;
+                    document.getElementById('edit-fecha-generacion').value = this.dataset.fecha;
+                    document.getElementById('edit-nombre-docente').value = this.dataset.nombre;
+                    document.getElementById('edit-apellido-docente').value = this.dataset.apellido;
+                    document.getElementById('edit-identificacion').value = this.dataset
+                        .identificacion;
+                    document.getElementById('edit-curso').value = this.dataset.curso;
+                    document.getElementById('edit-promedio').value = this.dataset.promedio;
+                    document.getElementById('edit-retroalimentacion').value = this.dataset
+                        .retroalimentacion;
+
+                    // Firma
+                    const firmaUrl = this.dataset.firmaUrl;
+                    const firmaImg = document.getElementById('edit-firma-preview');
+                    const firmaPlaceholder = document.getElementById('edit-firma-placeholder');
+
+                    if (firmaUrl) {
+                        firmaImg.src = firmaUrl;
+                        firmaImg.style.display = 'block';
+                        firmaPlaceholder.style.display = 'none';
+                    } else {
+                        firmaImg.style.display = 'none';
+                        firmaPlaceholder.style.display = 'block';
+                    }
+
+                    // Estado visual
+                    const promedio = parseFloat(this.dataset.promedio);
+                    let texto = '';
+                    let clase = '';
+
+                    if (promedio < 3) {
+                        texto = 'Bajo';
+                        clase = 'bg-danger';
+                    } else if (promedio < 4) {
+                        texto = 'Aceptable';
+                        clase = 'bg-warning';
+                    } else {
+                        texto = 'Alto';
+                        clase = 'bg-success';
+                    }
+
+                    document.getElementById('edit-estado-texto').textContent = texto;
+                    const badge = document.getElementById('edit-estado-badge');
+                    badge.textContent = texto;
+                    badge.className = 'badge ' + clase;
+                });
+            });
+        });
+    </script>
+    //SCRIP PARA GUARDAR ACTULIZAR LA BASE DE DATOS
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const botonGuardar = document.getElementById('btn-guardar-cambios');
+            const form = document.getElementById('editActaForm');
+
+            botonGuardar.addEventListener('click', function() {
+                const formData = new FormData(form);
+                const id = formData.get('id');
+
+                // Agrega el método PUT al formData para que Laravel lo entienda
+                formData.append('_method', 'PUT');
+
+                fetch(`/actas-compromiso/${id}`, {
+                        method: 'POST', // Laravel lo interpretará como PUT por _method
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Error al guardar los cambios');
+                        return response.json();
+                    })
+                    .then(data => {
+                        alert('Acta actualizada correctamente');
+                        location.reload(); // recarga la página o puedes cerrar el modal
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Hubo un error al actualizar el acta');
+                    });
+            });
+        });
     </script>
 
 @endsection

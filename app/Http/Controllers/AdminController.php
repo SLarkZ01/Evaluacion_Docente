@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 // metodo para el controlador de administrador
@@ -23,6 +23,12 @@ public function reportes()
 // metodo para el controlador de roles y permisos
 public function roles_permisos()
 {
-    return view('Administrador.Roles_permisos');
+     $usuarios = DB::select("CALL ObtenerTodosLosUsuarios()");
+    //  \Log::info('Datos de usuarios:', ['usuarios' => $usuarios]);
+     \Log::info('Datos de usuarios:', ['usuarios' => $usuarios]);
+
+    // return view('Administrador.Roles_permisos');
+    return view('Administrador.Roles_permisos', compact('usuarios'));
+
 }
 }

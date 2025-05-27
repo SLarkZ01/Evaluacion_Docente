@@ -12,19 +12,27 @@ class GestionUsuarios extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
-    {
-        try {
-            $usuarios = DB::select("CALL ObtenerTodosLosUsuarios()");
+   public function index()
+{
+    try {
+        $usuarios = DB::select("CALL ObtenerTodosLosUsuarios()");
+        return view('usuarios.index', compact('usuarios'));
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error al obtener usuarios: ' . $e->getMessage());
+    }
 
-            return response()->json($usuarios, 200);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'mensaje' => 'Error al obtener la lista de usuarios',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    
+        //     return response()->json([
+        //         'usuarios' => $usuarios
+        //     ], 200);
+
+        // } catch (\Exception $e) {
+        //     return response()->json([
+        //         'mensaje' => 'Error al obtener la lista de usuarios',
+        //         'error' => $e->getMessage()
+        //     ], 500);
+        // }
     }
 
     /**
@@ -32,6 +40,7 @@ class GestionUsuarios extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
