@@ -187,7 +187,8 @@ Frontend_backend_laravel_blade_evaluacion_docente/
    php artisan migrate:fresh --seed
    ```
 7. **Instalar la base de datos**:
-Ahora en phpMyAdmin importar la base de datos
+
+   **Ahora en phpMyAdmin importar la base de datos** 
 
 ![phpMyAdmin](public/images/img_install/phpMyAdmin.png)
 
