@@ -13,7 +13,7 @@ class RolSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('rol')->insert([
+        DB::table('rol_auth')->insert([
             [
                 'id_rol' => 1,
                 'nombre' => 'Decano',

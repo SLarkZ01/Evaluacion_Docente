@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 23-05-2025 a las 19:05:33
+-- Tiempo de generación: 26-05-2025 a las 20:23:14
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -202,25 +202,6 @@ WHERE
 ORDER BY 
     u.nombre ASC$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `BuscarDocentesBajoDesempenosss` ()   BEGIN
-    SELECT 
-        d.id_docente,
-        u.nombre AS nombre_docente,
-        u.apellido AS apellido_docente,
-        u.correo AS correo_docente,
-        u.identificacion AS identificacion_docente,
-        p.nombre AS nombre_programa,
-        f.nombre AS nombre_facultad,
-        e.promedio_total
-    FROM Evaluaciones e
-    INNER JOIN Docente d ON e.id_docente = d.id_docente
-    INNER JOIN Usuarios u ON d.id_usuario = u.id_usuario
-    INNER JOIN Programas p ON p.id_docente = d.id_docente
-    INNER JOIN Facultad f ON p.id_facultad = f.id_facultad
-    WHERE e.promedio_total < 4.0
-    ORDER BY u.nombre ASC;
-    END$$
-
 CREATE DEFINER=`root`@`localhost` PROCEDURE `CambiarEstadoActivoUsuario` (IN `in_id_usuario` INT, IN `in_activo` BOOLEAN)   BEGIN
     UPDATE Usuarios
     SET activo = in_activo,
@@ -336,6 +317,16 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `CreateActaCompromiso` (IN `p_fecha_
     SELECT * FROM Acta_Compromiso WHERE id = LAST_INSERT_ID();
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CREATE_usuario` (IN `p_id_rol` INT, IN `p_nombre` VARCHAR(255), IN `p_apellido` VARCHAR(255), IN `p_correo` VARCHAR(255), IN `p_contrasena` VARCHAR(255), IN `p_identificacion` VARCHAR(255), IN `p_tipo_usuario` ENUM('docente','coordinador','administrador'), IN `p_activo` BOOLEAN, OUT `p_id_usuario` INT)   BEGIN
+    INSERT INTO Usuarios (
+        id_rol, nombre, apellido, correo, contrasena, identificacion, tipo_usuario, activo
+    ) VALUES (
+        p_id_rol, p_nombre, p_apellido, p_correo, p_contrasena, p_identificacion, p_tipo_usuario, p_activo
+    );
+
+    SET p_id_usuario = LAST_INSERT_ID();
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `DeleteActaCompromiso` (IN `actaId` INT)   BEGIN
     DELETE FROM acta_compromiso WHERE id = actaId;
 END$$
@@ -380,8 +371,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `eliminar_acta` (IN `p_id` INT)   BE
     DELETE FROM acta_compromiso WHERE id = p_id;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActaCompromisoById` (IN `actaId` INT)   BEGIN
-    SELECT * FROM acta_compromiso WHERE id = actaId;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActaCompromisoById` (IN `p_id` INT)   BEGIN
+    SELECT * FROM acta_compromiso WHERE id = p_id;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `GetActasCompromiso` ()   BEGIN
@@ -583,29 +574,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerPromedioNotasPorFacultad` ()
     GROUP BY f.nombre;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerPromedioNotasPorFacultad1` ()   SELECT 
-    pedc.id_curso,
-    c.id_programa,
-    p.id_facultad,
-    f.nombre AS nombre_facultad,
-    pedc.promedio_notas_curso
-FROM Promedio_Evaluacion_Docente_Por_Curso pedc
-LEFT JOIN Cursos c ON c.id_curso = pedc.id_curso
-LEFT JOIN Programas p ON p.id_programa = c.id_programa
-LEFT JOIN Facultad f ON f.id_facultad = p.id_facultad
-WHERE p.id_facultad IS NULL$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerPromedioNotasPorFacultad2` ()   BEGIN
-    SELECT 
-        f.nombre AS facultad,
-        ROUND(AVG(pedc.promedio_notas_curso), 2) AS promedio_facultad
-    FROM Promedio_Evaluacion_Docente_Por_Curso pedc
-    JOIN Cursos c ON c.id_curso = pedc.id_curso
-    JOIN Programas p ON p.id_programa = c.id_programa
-    JOIN Facultad f ON f.id_facultad = p.id_facultad
-    GROUP BY f.nombre;
-END$$
-
 CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerPromedioPorFacultad` ()   BEGIN
     SELECT 
         f.nombre AS facultad,
@@ -647,9 +615,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerTodosLosUsuarios` ()   BEGIN
         apellido,
         correo,
         identificacion,
-        tipo_usuario,
-        fecha_creacion,
-        fecha_actualizacion
+        tipo_usuario
+
     FROM Usuarios;
 END$$
 
@@ -658,6 +625,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerUsuarioPorCorreo` (IN `corre
     FROM usuarios
     WHERE correo = correo_usuario
     LIMIT 1;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `ObtenerUsuarioPorNombre` (IN `p_nombre` VARCHAR(255))   BEGIN
+    SELECT 
+        id_usuario,
+        id_rol,
+        activo,
+        nombre,
+        apellido,
+        correo,
+        identificacion,
+        tipo_usuario
+    FROM 
+        Usuarios
+    WHERE 
+        nombre LIKE CONCAT('%', p_nombre, '%');
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `obtener_acta_por_id` (IN `p_id` INT)   BEGIN
@@ -715,11 +698,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `total_estudiantes_no_evaluaron` () 
     FROM estudiantes_no_evaluaron;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateActaCompromiso` (IN `p_id` INT, IN `p_retroalimentacion` TEXT, IN `p_fecha_generacion` DATE)   BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateActaCompromiso` (IN `p_id` INT, IN `p_numero_acta` VARCHAR(255), IN `p_fecha_generacion` DATE, IN `p_nombre_docente` VARCHAR(255), IN `p_apellido_docente` VARCHAR(255), IN `p_identificacion_docente` VARCHAR(255), IN `p_curso` VARCHAR(255), IN `p_promedio_total` DECIMAL(5,2), IN `p_retroalimentacion` TEXT, IN `p_firma_path` VARCHAR(255))   BEGIN
     UPDATE acta_compromiso
     SET 
+        numero_acta = p_numero_acta,
+        fecha_generacion = p_fecha_generacion,
+        nombre_docente = p_nombre_docente,
+        apellido_docente = p_apellido_docente,
+        identificacion_docente = p_identificacion_docente,
+        curso = p_curso,
+        promedio_total = p_promedio_total,
         retroalimentacion = p_retroalimentacion,
-        fecha_generacion = p_fecha_generacion
+        firma = p_firma_path
     WHERE id = p_id;
 END$$
 
@@ -751,12 +741,11 @@ CREATE TABLE `acta_compromiso` (
 --
 
 INSERT INTO `acta_compromiso` (`id`, `numero_acta`, `fecha_generacion`, `nombre_docente`, `apellido_docente`, `identificacion_docente`, `curso`, `promedio_total`, `retroalimentacion`, `firma`, `created_at`, `updated_at`) VALUES
-(7, 'ACTA-4911fc6c-36e3-11f0-aae6-48e7dabfd0bc', '0000-00-00', 'ed', 'cdds', '10003', '1', 3.00, 'wjjdjdejw', NULL, '2025-05-22 08:03:41', '2025-05-22 08:03:41'),
+(7, '666', '2025-05-25', 'edeteam', 'Rodriguez Rodriguez', '1058932350', 'Matmaticas discreta', 3.00, '2', 'oxac', '2025-05-22 08:03:41', '2025-05-22 08:03:41'),
 (8, 'ACTA-c5f792c9-36e3-11f0-aae6-48e7dabfd0bc', '2025-05-22', 'Alejo', 'xcv', '1000009', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente', NULL, '2025-05-22 08:07:10', '2025-05-22 08:07:10'),
 (9, 'ACTA-ed960da6-36e3-11f0-aae6-48e7dabfd0bc', '2025-05-22', 'Alejo', 'xcv', '1000009', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente', NULL, '2025-05-22 08:08:17', '2025-05-22 08:08:17'),
 (10, 'ACTA-0574ce59-36ec-11f0-aae6-48e7dabfd0bc', '2025-05-22', 'Alejo', 'xcv', '1000009trr', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente', NULL, '2025-05-22 09:06:13', '2025-05-22 09:06:13'),
 (11, 'ACTA-0682d9c7-36ed-11f0-aae6-48e7dabfd0bc', '2025-05-22', 'Carlos ruiz', 'sdfs', '10000008', 'INGENIERIA AMBIENTAL', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docent', NULL, '2025-05-22 09:13:24', '2025-05-22 09:13:24'),
-(12, 'ACTA-631b88ab-3780-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '1000000\'', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docent', NULL, '2025-05-23 02:47:53', '2025-05-23 02:47:53'),
 (13, 'ACTA-cb9a5f7e-3783-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '10020200', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente', NULL, '2025-05-23 03:12:17', '2025-05-23 03:12:17'),
 (14, 'ACTA-521ee4dd-3786-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '10020200', 'DERECHO', 4.00, 'no hace nada siempre', NULL, '2025-05-23 03:30:22', '2025-05-23 03:30:22'),
 (15, 'ACTA-9cddd375-3786-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '10020200', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente no hace nada', NULL, '2025-05-23 03:32:27', '2025-05-23 03:32:27'),
@@ -764,9 +753,7 @@ INSERT INTO `acta_compromiso` (`id`, `numero_acta`, `fecha_generacion`, `nombre_
 (17, 'ACTA-bd18d998-3789-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '100202006787', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente no hace nada', NULL, '2025-05-23 03:54:50', '2025-05-23 03:54:50'),
 (18, 'ACTA-d12f6d1b-3789-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '100000988', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docent', NULL, '2025-05-23 03:55:23', '2025-05-23 03:55:23'),
 (19, 'ACTA-3ac29260-378c-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Ana Gómez', 'dfg', '08899898', 'INGENIERIA SOFTWARE', 3.00, 'Aquí el decano hará sus comentarios hacia el respectivo docente', NULL, '2025-05-23 04:12:40', '2025-05-23 04:12:40'),
-(20, 'ACTA-a7f2ee7c-37d7-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Alejo', 'xcv', '088998989000', 'DERECHO', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docent', NULL, '2025-05-23 13:12:27', '2025-05-23 13:12:27'),
-(21, 'ACTA-4e44d26e-37e8-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Ana Gómez', 'dfg', '08899898900055', 'INGENIERIA SOFTWARE', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docent', NULL, '2025-05-23 15:11:37', '2025-05-23 15:11:37'),
-(22, 'ACTA-2d1d3329-37e9-11f0-aae6-48e7dabfd0bc', '2025-05-23', 'Carlos ruiz', 'sdfs', '123456798', 'INGENIERIA AMBIENTAL', 4.00, 'Aquí el decano hará sus comentarios hacia el respectivo docent', NULL, '2025-05-23 15:17:51', '2025-05-23 15:17:51');
+(20, '', '2025-05-06', 'Pedro dOREADO', 'MARTINEZ', '222', 'LABORATORIO DE ELECTRONICA II', 5.00, 'Esta es una prueba de qfunciona 2', NULL, '2025-05-24 21:45:02', '2025-05-24 21:45:02');
 
 -- --------------------------------------------------------
 
@@ -803,187 +790,187 @@ CREATE TABLE `comentarios` (
 --
 
 INSERT INTO `comentarios` (`id_comentario`, `tipo`, `id_docente`, `id_programa`, `id_coordinacion`, `comentario1`, `comentario2`) VALUES
-(544, 'COMENTARIOS COORDINADOR', 43, 63, 3, 'el docente tiene buena disposición para cumplir con sus cursos ', 'debe mejorar en ser mas activo y prpositivo en actividades de l programa y de la facultad'),
-(545, 'COMENTARIOS COORDINADOR', 44, 63, 3, 'tiene acttitud y compromiso .', 'ser mas visible, proponer en los comites, de seguro tiene mucho potencial para generar estrategias en su prorama '),
-(546, 'COMENTARIOS COORDINADOR', 45, 63, 3, 'su alergria, su compromiso , su cumplimiento y su sentido de pertenecia, además de motivar a los estudiantes de una gran manera ', NULL),
-(547, 'COMENTARIOS COORDINADOR', 46, 63, 3, 'es un docente muy motivador, comprometido, con iniciativa y disposición ', NULL),
-(548, 'COMENTARIOS COORDINADOR', 47, 63, 3, 'es un muy buen docente desde lo técnico ', 'le falta cumplir y mejorar su disposicio para apoyar actividades que se propone en la facultad'),
-(549, 'COMENTARIOS COORDINADOR', 48, 63, 3, 'Es un docente muy bueno desde lo técnico y de conocimientos, tiene muy buena actitud, disposició y compromiso ', NULL),
-(550, 'COMENTARIOS DOCENTES', 49, 63, 3, 'Dedicación a la preparación y ejecución del curso', 'Determinar objetivos más alcanzables en el curso '),
-(551, 'COMENTARIOS DOCENTES', 43, 63, 3, 'Generar espacios de aprendizaje transversal a la carrera ', 'Definir objetivos alcanzables de acuerdo a la características del curso'),
-(552, 'COMENTARIOS ESTUDIANTES', 44, 63, 3, '.', NULL),
-(553, 'COMENTARIOS ESTUDIANTES', 45, 63, 3, 'en su manera de dar a conocer sus temas de forma dinamia y practica ', 'no debe mejorar en el sentido que lo temas explicados quedan claros '),
-(554, 'COMENTARIOS ESTUDIANTES', 46, 63, 3, 'Es un docente excelente, nos asesoraba muy bien en los temas que no entendíamos en el curso', NULL),
-(555, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Si calidad de enseñanza ', 'Ninguna observación '),
-(556, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su calidad de enseñanza ', 'Ninguna observación '),
-(557, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Se destaca en explicar de manera sencilla ', 'Hacer mas ejercicios y que sea mas interactivo '),
-(558, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Flexible en trabajo en clase ', 'Forma de calificar ( no valida el proceso, solo los resultados), clases confusas y evaluaciones complicadas '),
-(559, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'muy buen profesor ', 'nada por mejorar '),
-(560, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Llegar siempre tarde a las clases', 'Llega muy tarde a las clases, casi no está pendiente de los estudiantes si tienen alguna duda '),
-(561, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(562, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(563, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno ', 'Enseñar '),
-(564, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Excelente ', NULL),
-(565, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Busca la investigación y trabajo en equipo', NULL),
-(566, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Dar buenas explicaciones y ser flexible ', 'No aplica '),
-(567, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, NULL, 'brindar mas actividades para comprender mejor los temas vistos en clase '),
-(568, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'todos los temas', 'sus clases van muy rápido '),
-(569, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su clase es muy entendible ', NULL),
-(570, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar los temas', 'Nada'),
-(571, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su dedicación e interes por el aprendizaje de sus estudiantes', 'Desde mi punto de vista, el docente cumplió con el plan de aula '),
-(572, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su respeto y comprensión con los estudiante. Es comodo y entendible los ejercicios con el maestro. Me siento agradecida y cómoda de haber pasado el semestre. ', 'Con respeto, pienso que debería mejorar en tener mejor organización al escribir los ejercicios. Tal vez se vuelve algo confuso, pero no importa, se agradece el esfuerzo y lo que nos explica. '),
-(573, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'explicar los temas', 'nada'),
-(574, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Todo', 'Nada'),
-(575, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Muy buena metodología, recalca en los temas y se hace entender ', NULL),
-(576, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'El docente siempre llega puntual, expresa con claridad los temas, los talleres y exámenes siempre son acordes a los temas vistos en clase. Un muy buen profesor. Felicitaciones.', NULL),
-(577, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'realizacion de talleres practicos para mejorar el estudio y comprension de nuevos temas vistos y asi mismo evalua las practicas del taller por medio de parciales llevando a cabo un buen plan de estudio ', 'nada por ahora sigue asi '),
-(578, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'El docente se destaca en su paciencia para enseñar los temas vistos', 'el docente debe ser mas consciente y de que no podemos aprender todo en un día  '),
-(579, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'bien', 'esta bien que deje taller,pero que no sea tan largo y todavia finalizando semestre '),
-(580, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Da buen entendimiento en las clases y resuelve dudas de manera muy clara ', 'Ninguno'),
-(581, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, NULL, 'Congruencia con temas vistos en clase y evaluaciones (talleres),  poca flexibilidad al resolver dudas.'),
-(582, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Hace que los temas se entiendan facil', 'Debe mejorar en que no sea tan neutra la clase.'),
-(583, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'En diferentes aspectos sobre integrales', 'No se llevamos un semestre con el'),
-(584, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Exelente calidad de enseñanza ', 'Ninguna observación '),
-(585, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Economia', NULL),
-(586, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'todo', 'todo'),
-(587, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explica bien', '.'),
-(588, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno', 'Explica excelente pero quedamos un poco atrasados ya que íbamos atrasados con el otro profe y por eso ahora estoy perdida '),
-(589, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Da el tema en manera clara ', 'El orden '),
-(590, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'su actitud ', 'nada '),
-(591, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'explicar temas paso a paso ayudándonos a nosotros como estudiantes a entender mejor', 'en ser mas dinámico '),
-(592, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'El docente se destaca en la puntualidad ', 'El docente debe mejorar en la metodología de explicar, el como puede hacer que los estudiantes puedan comprender los temas, y que en especial el taller para estudiar tenga que ver con el examen, y q si se le pregunta una duda sin mucha relevancia para decir que esta resolviendo el examen el mismo que porfavor pueda responder con amabilidad o por lo menos de una idea para aclarar la duda teniendo en cuenta que no hubo las horas de clases establecidas  así que no se justifica decir que ya lo \"sabiamos\"'),
-(593, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buen aprendizaje', 'No colocar parciales duros y trabajos largos'),
-(594, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Dar buenas explicaciones ', 'Ser justo en los parciales en el ámbito de colocar ejercicios acorde a lo estudiado y puesto en los talleres '),
-(595, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Todo', 'Nada'),
-(596, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Regular ', NULL),
-(597, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Nada', 'Nuevos docentes como Manuel Obando que les guste su profesión y brinden sus conocimientos, no como Diego y Victor hugo'),
-(598, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su carisma', 'La manera de explicar alguna inquietud sobre algún tema, tener un poco más de empatía y querer ayudar de verdad a despejar la duda'),
-(599, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'La puntualidad', 'Retroalimentación de resultados.'),
-(600, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Cumplido ', 'Nada '),
-(601, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, NULL, 'Ser más claro con sus explicaciones '),
-(602, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Metodología de estudio'),
-(603, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su personalidad y disposición al enseñar ', 'Un poco en la metodología pero de resto es muy bien docente '),
-(604, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno', 'Bueno'),
-(605, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Álgebra ', NULL),
-(606, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Matemáticas ', 'Está todo bien '),
-(607, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Ser dinámico ', 'Dar más formas de calificar '),
-(608, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Bien'),
-(609, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'La profe maneja una metodología muy acertada para el aprendizaje ', NULL),
-(610, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su manera de explicar y su paciencia', '...'),
-(611, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Bien'),
-(612, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(613, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Excelente profesor', 'Nada'),
-(614, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Buen'),
-(615, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buen profesor ', 'No tiene que mejorar en nada '),
-(616, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Enseñanza ', 'Que lo dejen para el próximo semestre por favor y de la continuación de circuitos 2'),
-(617, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(618, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'enseña muy  bien es muy pacienye', 'nada'),
-(619, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'ESTA BIEN ASI', 'ESTA BIEN ASI'),
-(620, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buen Aprendizaje ', NULL),
-(621, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Muy buen profesor', 'Nada'),
-(622, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(623, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(624, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'na', 'na'),
-(625, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '..', NULL),
-(626, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explica muy bien', 'En nada '),
-(627, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno para enseñar ', 'Nada '),
-(628, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '..', 'sus explicaiones'),
-(629, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'conocimiento en su area', '.'),
-(630, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Todo', 'Nada'),
-(631, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buen profe ', 'Todo bien '),
-(632, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buena metodología ', 'Acompañamiento '),
-(633, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(634, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(635, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'ninguno ', 'ninguno '),
-(636, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Una temática muy buena ', NULL),
-(637, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Puntualidad ', 'Que explique bien sus temas '),
-(638, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Es muy puntual en su horario y es claro en las metodología que utiliza ', NULL),
-(639, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Es muy puntual en su horario de clases y aprovecha muy bien el tiempo en la clases para abarcar todos los temas ', 'No'),
-(640, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Muy puntual y correcto con las clases ', 'Pocas cosas en las que debe mejorar como profesor,'),
-(641, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explica de forma eficiente.  Su interés es que todos entiendan.', NULL),
-(642, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'se esfuerza porque el estudiante aprenda el tema ', 'nada a mi parecer'),
-(643, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'se esfuerza por que el estudiante le quede claro el tema', 'a mi parecer, nada'),
-(644, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, NULL, 'No dar tantos temas en una sola clase ir más despacio '),
-(645, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Un execelente docente, explica todos sus temas de una forma detallada y precisa todo el curso fue excelente y un buen profesor ', NULL),
-(646, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'en una mierda, el peor profesor de la u sin duda ', 'Literal en todo '),
-(647, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Enseñar temas de aprendizaje, enfocados en la carrera.', 'En el momento, no tengo un argumento claro para responder a la pregunta.'),
-(648, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Excelente docente, maneja y explica cada tema a la perfección ', NULL),
-(649, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'N/A', 'N/A'),
-(650, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, ' Tiene una explicación clara y concisa  acerca de todos los temas', 'La verdad me gusta la metodología que maneja, no haría ningún  cambio '),
-(651, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'forma de explicar', 'nada'),
-(652, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'explica bien ', 'nada'),
-(653, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'en tomar en cuenta las asesorias de los estudiantes y ver su desempeño a lo largo del curso', 'dar mas oportunidades en cuanto a trabajos y demás'),
-(654, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Presentar los temas de manera clara y precisa, también en dar una clase que motiva al estudiante a aprender y preguntar si no entiende algún tema, por último siempre busca la forma de hacer las clase más dinámicas.', 'El docente a lo largo del semestre no presento ningún aspecto para mejorar, en mi punto de vista el docente cumplio todas las expectativas acerca del curso.'),
-(655, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'No se ', 'No se'),
-(656, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Presentar los temas de manera clara y precisa, también en dar una clase que motiva al estudiante a aprender y preguntar si no entiende algún tema, por último siempre busca la forma de hacer las clase más dinámicas.', 'El docente a lo largo del semestre no presento ningún aspecto para mejorar, en mi punto de vista el docente cumplio todas las expectativas acerca del curso.'),
-(657, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Puntualidad, comprensión ', 'Metodología al momento de enseñar'),
-(658, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar bien y se entienden sus temas con su forma de enseñar ', NULL),
-(659, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buen profe', 'Buen profe '),
-(660, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar y darse a entender bien en sus clases ', NULL),
-(661, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Todo', 'Nada'),
-(662, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Va rápido en los temas pero explica súper bn, entiendo todo', NULL),
-(663, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno ', 'Nada '),
-(664, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Son muy buenas sus clases y su metodología ', NULL),
-(665, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Muy responsable con su deber como profesor ', 'Pocas cosas que mejorar como profesor '),
-(666, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Destaca por su puntualidad, conpromiso con el curso, y conocimientos', 'Nada'),
-(667, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Excelente', 'Nada'),
-(668, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(669, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su forma de dar clases', 'Nada'),
-(670, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Calidad de vida enseñanza', 'Cantidad de ejercicios de taller (pocos en el tercer corte)'),
-(671, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Clases buenas', 'Explicar menos rapido '),
-(672, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar muy bien.', 'Nada es perfecto '),
-(673, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar bien ', 'Nada es perfecto '),
-(674, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Dicta bien sus clases ', 'Nada, es buen docente '),
-(675, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno', 'Bueno'),
-(676, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'la puntualidad y en dar su plan de aula completo', 'En lo que el explica en clase y en talleres, salen algunos puntos en el parcial que no hemos visto '),
-(677, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Bien'),
-(678, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Bien'),
-(679, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(680, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su manera de explicar, paciencia y acompañamiento', '...'),
-(681, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su paciencia y manera de explicar', NULL),
-(682, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(683, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su dedicación e interes por el aprendizaje de sus estudiantes', 'Desde mi punto de vista, el docente cumplió con el plan de aula'),
-(684, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar muy bien cada clase.', NULL),
-(685, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(686, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Ser buen profesor ', 'Los trabajos que deja para entregar no son claro '),
-(687, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(688, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Todo está bien', 'nada'),
-(689, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(690, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(691, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Enseña muy bien ', 'No debe mejorar en nada '),
-(692, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explica bien ', 'No debe mejorar en nada '),
-(693, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(694, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(695, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'excelente profesor', NULL),
-(696, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Algunos aspectos', 'No explica bien'),
-(697, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Puntualidad', 'Debería dejar de tratar a los estudiantes como “tontos”'),
-(698, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, NULL, 'La llegada a clase, llega 10-15 minutos después de la hora establecida '),
-(699, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', NULL),
-(700, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'explicación de temas', 'usar mas las ayudas tecnologicas'),
-(701, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'muy buen profesor', 'nada por mejorar '),
-(702, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'En ser miy paciente y explicarnos los temas de una forma clara ', NULL),
-(703, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Paciencia ', 'Nada '),
-(704, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'N/A', 'N/A'),
-(705, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'explica los temas con claridad', 'nada '),
-(706, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'No acepta diferentes formas de calificar fue de los parciales ', NULL),
-(707, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Se destaca en la forma en que explica.', 'Debe mejorar en hacer mas ejercicios para que se pueda entender mejor.'),
-(708, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'La forma de dar la clase ', 'Nada'),
-(709, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Muy buen profesor, paciente y diligente ', NULL),
-(710, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Puntualidad a la hora de iniciar las clases ', 'Poner mas actividades calificativas '),
-(711, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Su conocimiento sobre el tema', '...'),
-(712, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'muy buen profesor y gran ser humano', 'nada'),
-(713, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(714, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bien', 'Metodologia'),
-(715, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'explica muy bien los temas vistos en cada tema ', 'que sean mas dinámicas '),
-(716, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Explicar super bien ', NULL),
-(717, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, '.', '.'),
-(718, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Excelente', 'Nada'),
-(719, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Calidad de enseñanza ', 'Ejercicios algo confusos'),
-(720, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Excelente ', NULL),
-(721, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Buena persona, buen profesor y es justo en el tema académico ', 'No aplica '),
-(722, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Fomenta la investigación ', NULL),
-(723, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Bueno', 'Bueno'),
-(724, 'COMENTARIOS ESTUDIANTES', NULL, 63, NULL, 'Fisica', 'Estrategia ');
+(544, 'COMENTARIOS COORDINADOR', 57, 77, 3, 'el docente tiene buena disposición para cumplir con sus cursos ', 'debe mejorar en ser mas activo y prpositivo en actividades de l programa y de la facultad'),
+(545, 'COMENTARIOS COORDINADOR', 58, 77, 3, 'tiene acttitud y compromiso .', 'ser mas visible, proponer en los comites, de seguro tiene mucho potencial para generar estrategias en su prorama '),
+(546, 'COMENTARIOS COORDINADOR', 59, 77, 3, 'su alergria, su compromiso , su cumplimiento y su sentido de pertenecia, además de motivar a los estudiantes de una gran manera ', NULL),
+(547, 'COMENTARIOS COORDINADOR', 60, 77, 3, 'es un docente muy motivador, comprometido, con iniciativa y disposición ', NULL),
+(548, 'COMENTARIOS COORDINADOR', 61, 77, 3, 'es un muy buen docente desde lo técnico ', 'le falta cumplir y mejorar su disposicio para apoyar actividades que se propone en la facultad'),
+(549, 'COMENTARIOS COORDINADOR', 62, 77, 3, 'Es un docente muy bueno desde lo técnico y de conocimientos, tiene muy buena actitud, disposició y compromiso ', NULL),
+(550, 'COMENTARIOS DOCENTES', 63, 77, 3, 'Dedicación a la preparación y ejecución del curso', 'Determinar objetivos más alcanzables en el curso '),
+(551, 'COMENTARIOS DOCENTES', 57, 77, 3, 'Generar espacios de aprendizaje transversal a la carrera ', 'Definir objetivos alcanzables de acuerdo a la características del curso'),
+(552, 'COMENTARIOS ESTUDIANTES', 58, 77, 3, '.', NULL),
+(553, 'COMENTARIOS ESTUDIANTES', 59, 77, 3, 'en su manera de dar a conocer sus temas de forma dinamia y practica ', 'no debe mejorar en el sentido que lo temas explicados quedan claros '),
+(554, 'COMENTARIOS ESTUDIANTES', 60, 77, 3, 'Es un docente excelente, nos asesoraba muy bien en los temas que no entendíamos en el curso', NULL),
+(555, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Si calidad de enseñanza ', 'Ninguna observación '),
+(556, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su calidad de enseñanza ', 'Ninguna observación '),
+(557, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Se destaca en explicar de manera sencilla ', 'Hacer mas ejercicios y que sea mas interactivo '),
+(558, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Flexible en trabajo en clase ', 'Forma de calificar ( no valida el proceso, solo los resultados), clases confusas y evaluaciones complicadas '),
+(559, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'muy buen profesor ', 'nada por mejorar '),
+(560, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Llegar siempre tarde a las clases', 'Llega muy tarde a las clases, casi no está pendiente de los estudiantes si tienen alguna duda '),
+(561, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(562, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(563, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno ', 'Enseñar '),
+(564, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Excelente ', NULL),
+(565, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Busca la investigación y trabajo en equipo', NULL),
+(566, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Dar buenas explicaciones y ser flexible ', 'No aplica '),
+(567, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, NULL, 'brindar mas actividades para comprender mejor los temas vistos en clase '),
+(568, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'todos los temas', 'sus clases van muy rápido '),
+(569, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su clase es muy entendible ', NULL),
+(570, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar los temas', 'Nada'),
+(571, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su dedicación e interes por el aprendizaje de sus estudiantes', 'Desde mi punto de vista, el docente cumplió con el plan de aula '),
+(572, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su respeto y comprensión con los estudiante. Es comodo y entendible los ejercicios con el maestro. Me siento agradecida y cómoda de haber pasado el semestre. ', 'Con respeto, pienso que debería mejorar en tener mejor organización al escribir los ejercicios. Tal vez se vuelve algo confuso, pero no importa, se agradece el esfuerzo y lo que nos explica. '),
+(573, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'explicar los temas', 'nada'),
+(574, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Todo', 'Nada'),
+(575, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Muy buena metodología, recalca en los temas y se hace entender ', NULL),
+(576, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'El docente siempre llega puntual, expresa con claridad los temas, los talleres y exámenes siempre son acordes a los temas vistos en clase. Un muy buen profesor. Felicitaciones.', NULL),
+(577, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'realizacion de talleres practicos para mejorar el estudio y comprension de nuevos temas vistos y asi mismo evalua las practicas del taller por medio de parciales llevando a cabo un buen plan de estudio ', 'nada por ahora sigue asi '),
+(578, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'El docente se destaca en su paciencia para enseñar los temas vistos', 'el docente debe ser mas consciente y de que no podemos aprender todo en un día  '),
+(579, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'bien', 'esta bien que deje taller,pero que no sea tan largo y todavia finalizando semestre '),
+(580, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Da buen entendimiento en las clases y resuelve dudas de manera muy clara ', 'Ninguno'),
+(581, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, NULL, 'Congruencia con temas vistos en clase y evaluaciones (talleres),  poca flexibilidad al resolver dudas.'),
+(582, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Hace que los temas se entiendan facil', 'Debe mejorar en que no sea tan neutra la clase.'),
+(583, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'En diferentes aspectos sobre integrales', 'No se llevamos un semestre con el'),
+(584, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Exelente calidad de enseñanza ', 'Ninguna observación '),
+(585, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Economia', NULL),
+(586, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'todo', 'todo'),
+(587, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explica bien', '.'),
+(588, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno', 'Explica excelente pero quedamos un poco atrasados ya que íbamos atrasados con el otro profe y por eso ahora estoy perdida '),
+(589, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Da el tema en manera clara ', 'El orden '),
+(590, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'su actitud ', 'nada '),
+(591, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'explicar temas paso a paso ayudándonos a nosotros como estudiantes a entender mejor', 'en ser mas dinámico '),
+(592, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'El docente se destaca en la puntualidad ', 'El docente debe mejorar en la metodología de explicar, el como puede hacer que los estudiantes puedan comprender los temas, y que en especial el taller para estudiar tenga que ver con el examen, y q si se le pregunta una duda sin mucha relevancia para decir que esta resolviendo el examen el mismo que porfavor pueda responder con amabilidad o por lo menos de una idea para aclarar la duda teniendo en cuenta que no hubo las horas de clases establecidas  así que no se justifica decir que ya lo \"sabiamos\"'),
+(593, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buen aprendizaje', 'No colocar parciales duros y trabajos largos'),
+(594, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Dar buenas explicaciones ', 'Ser justo en los parciales en el ámbito de colocar ejercicios acorde a lo estudiado y puesto en los talleres '),
+(595, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Todo', 'Nada'),
+(596, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Regular ', NULL),
+(597, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Nada', 'Nuevos docentes como Manuel Obando que les guste su profesión y brinden sus conocimientos, no como Diego y Victor hugo'),
+(598, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su carisma', 'La manera de explicar alguna inquietud sobre algún tema, tener un poco más de empatía y querer ayudar de verdad a despejar la duda'),
+(599, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'La puntualidad', 'Retroalimentación de resultados.'),
+(600, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Cumplido ', 'Nada '),
+(601, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, NULL, 'Ser más claro con sus explicaciones '),
+(602, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Metodología de estudio'),
+(603, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su personalidad y disposición al enseñar ', 'Un poco en la metodología pero de resto es muy bien docente '),
+(604, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno', 'Bueno'),
+(605, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Álgebra ', NULL),
+(606, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Matemáticas ', 'Está todo bien '),
+(607, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Ser dinámico ', 'Dar más formas de calificar '),
+(608, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Bien'),
+(609, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'La profe maneja una metodología muy acertada para el aprendizaje ', NULL),
+(610, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su manera de explicar y su paciencia', '...'),
+(611, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Bien'),
+(612, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(613, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Excelente profesor', 'Nada'),
+(614, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Buen'),
+(615, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buen profesor ', 'No tiene que mejorar en nada '),
+(616, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Enseñanza ', 'Que lo dejen para el próximo semestre por favor y de la continuación de circuitos 2'),
+(617, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(618, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'enseña muy  bien es muy pacienye', 'nada'),
+(619, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'ESTA BIEN ASI', 'ESTA BIEN ASI'),
+(620, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buen Aprendizaje ', NULL),
+(621, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Muy buen profesor', 'Nada'),
+(622, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(623, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(624, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'na', 'na'),
+(625, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '..', NULL),
+(626, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explica muy bien', 'En nada '),
+(627, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno para enseñar ', 'Nada '),
+(628, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '..', 'sus explicaiones'),
+(629, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'conocimiento en su area', '.'),
+(630, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Todo', 'Nada'),
+(631, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buen profe ', 'Todo bien '),
+(632, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buena metodología ', 'Acompañamiento '),
+(633, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(634, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(635, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'ninguno ', 'ninguno '),
+(636, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Una temática muy buena ', NULL),
+(637, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Puntualidad ', 'Que explique bien sus temas '),
+(638, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Es muy puntual en su horario y es claro en las metodología que utiliza ', NULL),
+(639, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Es muy puntual en su horario de clases y aprovecha muy bien el tiempo en la clases para abarcar todos los temas ', 'No'),
+(640, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Muy puntual y correcto con las clases ', 'Pocas cosas en las que debe mejorar como profesor,'),
+(641, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explica de forma eficiente.  Su interés es que todos entiendan.', NULL),
+(642, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'se esfuerza porque el estudiante aprenda el tema ', 'nada a mi parecer'),
+(643, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'se esfuerza por que el estudiante le quede claro el tema', 'a mi parecer, nada'),
+(644, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, NULL, 'No dar tantos temas en una sola clase ir más despacio '),
+(645, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Un execelente docente, explica todos sus temas de una forma detallada y precisa todo el curso fue excelente y un buen profesor ', NULL),
+(646, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'en una mierda, el peor profesor de la u sin duda ', 'Literal en todo '),
+(647, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Enseñar temas de aprendizaje, enfocados en la carrera.', 'En el momento, no tengo un argumento claro para responder a la pregunta.'),
+(648, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Excelente docente, maneja y explica cada tema a la perfección ', NULL),
+(649, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'N/A', 'N/A'),
+(650, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, ' Tiene una explicación clara y concisa  acerca de todos los temas', 'La verdad me gusta la metodología que maneja, no haría ningún  cambio '),
+(651, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'forma de explicar', 'nada'),
+(652, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'explica bien ', 'nada'),
+(653, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'en tomar en cuenta las asesorias de los estudiantes y ver su desempeño a lo largo del curso', 'dar mas oportunidades en cuanto a trabajos y demás'),
+(654, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Presentar los temas de manera clara y precisa, también en dar una clase que motiva al estudiante a aprender y preguntar si no entiende algún tema, por último siempre busca la forma de hacer las clase más dinámicas.', 'El docente a lo largo del semestre no presento ningún aspecto para mejorar, en mi punto de vista el docente cumplio todas las expectativas acerca del curso.'),
+(655, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'No se ', 'No se'),
+(656, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Presentar los temas de manera clara y precisa, también en dar una clase que motiva al estudiante a aprender y preguntar si no entiende algún tema, por último siempre busca la forma de hacer las clase más dinámicas.', 'El docente a lo largo del semestre no presento ningún aspecto para mejorar, en mi punto de vista el docente cumplio todas las expectativas acerca del curso.'),
+(657, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Puntualidad, comprensión ', 'Metodología al momento de enseñar'),
+(658, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar bien y se entienden sus temas con su forma de enseñar ', NULL),
+(659, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buen profe', 'Buen profe '),
+(660, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar y darse a entender bien en sus clases ', NULL),
+(661, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Todo', 'Nada'),
+(662, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Va rápido en los temas pero explica súper bn, entiendo todo', NULL),
+(663, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno ', 'Nada '),
+(664, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Son muy buenas sus clases y su metodología ', NULL),
+(665, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Muy responsable con su deber como profesor ', 'Pocas cosas que mejorar como profesor '),
+(666, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Destaca por su puntualidad, conpromiso con el curso, y conocimientos', 'Nada'),
+(667, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Excelente', 'Nada'),
+(668, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(669, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su forma de dar clases', 'Nada'),
+(670, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Calidad de vida enseñanza', 'Cantidad de ejercicios de taller (pocos en el tercer corte)'),
+(671, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Clases buenas', 'Explicar menos rapido '),
+(672, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar muy bien.', 'Nada es perfecto '),
+(673, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar bien ', 'Nada es perfecto '),
+(674, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Dicta bien sus clases ', 'Nada, es buen docente '),
+(675, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno', 'Bueno'),
+(676, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'la puntualidad y en dar su plan de aula completo', 'En lo que el explica en clase y en talleres, salen algunos puntos en el parcial que no hemos visto '),
+(677, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Bien'),
+(678, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Bien'),
+(679, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(680, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su manera de explicar, paciencia y acompañamiento', '...'),
+(681, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su paciencia y manera de explicar', NULL),
+(682, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(683, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su dedicación e interes por el aprendizaje de sus estudiantes', 'Desde mi punto de vista, el docente cumplió con el plan de aula'),
+(684, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar muy bien cada clase.', NULL),
+(685, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(686, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Ser buen profesor ', 'Los trabajos que deja para entregar no son claro '),
+(687, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(688, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Todo está bien', 'nada'),
+(689, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(690, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(691, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Enseña muy bien ', 'No debe mejorar en nada '),
+(692, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explica bien ', 'No debe mejorar en nada '),
+(693, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(694, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(695, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'excelente profesor', NULL),
+(696, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Algunos aspectos', 'No explica bien'),
+(697, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Puntualidad', 'Debería dejar de tratar a los estudiantes como “tontos”'),
+(698, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, NULL, 'La llegada a clase, llega 10-15 minutos después de la hora establecida '),
+(699, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', NULL),
+(700, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'explicación de temas', 'usar mas las ayudas tecnologicas'),
+(701, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'muy buen profesor', 'nada por mejorar '),
+(702, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'En ser miy paciente y explicarnos los temas de una forma clara ', NULL),
+(703, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Paciencia ', 'Nada '),
+(704, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'N/A', 'N/A'),
+(705, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'explica los temas con claridad', 'nada '),
+(706, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'No acepta diferentes formas de calificar fue de los parciales ', NULL),
+(707, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Se destaca en la forma en que explica.', 'Debe mejorar en hacer mas ejercicios para que se pueda entender mejor.'),
+(708, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'La forma de dar la clase ', 'Nada'),
+(709, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Muy buen profesor, paciente y diligente ', NULL),
+(710, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Puntualidad a la hora de iniciar las clases ', 'Poner mas actividades calificativas '),
+(711, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Su conocimiento sobre el tema', '...'),
+(712, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'muy buen profesor y gran ser humano', 'nada'),
+(713, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(714, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bien', 'Metodologia'),
+(715, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'explica muy bien los temas vistos en cada tema ', 'que sean mas dinámicas '),
+(716, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Explicar super bien ', NULL),
+(717, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, '.', '.'),
+(718, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Excelente', 'Nada'),
+(719, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Calidad de enseñanza ', 'Ejercicios algo confusos'),
+(720, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Excelente ', NULL),
+(721, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Buena persona, buen profesor y es justo en el tema académico ', 'No aplica '),
+(722, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Fomenta la investigación ', NULL),
+(723, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Bueno', 'Bueno'),
+(724, 'COMENTARIOS ESTUDIANTES', NULL, 77, NULL, 'Fisica', 'Estrategia ');
 
 -- --------------------------------------------------------
 
@@ -1026,75 +1013,51 @@ CREATE TABLE `cursos` (
 --
 
 INSERT INTO `cursos` (`id_curso`, `codigo`, `nombre`, `id_programa`, `id_docente`) VALUES
-(226, '11180320DA', 'LABORATORIO INSTRUMENTACIÓN BASICA', 63, 43),
-(227, '11180426DA', 'CIRCUITOS DIGITALES I', 63, 44),
-(228, '11180529DA', 'CAD', 63, 45),
-(229, '11180533DA', 'CIRCUITOS DIGITALES II', 63, 46),
-(230, '11180641DA', 'LABORATORIO DE ELECTRONICA II', 63, 47),
-(231, '11180748DA', 'ELECTIVA I: OPTATIVA', 63, 48),
-(232, '11180749DA', 'INSTRUMENTACION INDUSTRIAL', 63, 49),
-(233, '32221208DA', 'CIRCUITOS ELECTRICOS II Y LABORATORIO', 63, 49),
-(234, '11180639DA', 'SISTEMA DE CONTROL I', 63, NULL),
-(235, '11180959DA', 'SOFTWARE PARA  APLICACIONES INDUSTRIALES', 63, NULL),
-(236, '11181065DA', 'CONTROL DE PROCESOS', 63, NULL),
-(237, '18220146DA', 'MATEMATICA BASICA', 63, NULL),
-(238, '11180534DA', 'LABORATORIO DE ELECTRONICA I', 63, NULL),
-(239, '12190308DA', 'CALCULO II', 63, NULL),
-(240, '13200101DA', 'MATEMÁTICA I', 63, NULL),
-(241, '32221207DA', 'ALGEBRA LINEAL', 63, NULL),
-(242, '33220312DA', 'CALCULO II (INTEGRAL', 63, NULL),
-(243, '11180854DA', 'OPTOELECTRONICA', 63, NULL),
-(244, '11181064DA', 'ROBOTICA II', 63, NULL),
-(245, '11180213DA', 'CIRCUITOS ELECTRICOS II', 63, NULL),
-(246, '11180745DA', 'SISTEMA DE CONTROL II', 63, NULL),
-(247, '11180852DA', 'ELECTIVA II: OPTATIVA', 63, NULL),
-(248, '11180855DA', 'PLCs', 63, NULL),
-(249, '11180958DA', 'SCADA', 63, NULL),
-(250, '19203328DB', 'TALLER DE INVESTIGACIÓN', 63, NULL),
-(251, '12190204DA', 'CALCULO I', 63, NULL),
-(252, '12190205DA', 'ALGEBRA LINEAL', 63, NULL),
-(253, '18220206DA', 'ALGEBRA LINEAL', 63, NULL),
-(254, '36220205DA', 'CALCULO I (DIFERENCIAL)', 63, NULL),
-(255, '11180319DA', 'CIRCUITOS ELECTRONICOS', 63, NULL),
-(256, '11180638DA', 'CIRCUITOS DIGITALES III', 63, NULL),
-(257, '11180642DA', 'CIRCUITOS DE POTENCIA', 63, NULL),
-(258, '11180744DA', 'CIRCUITOS DIGITALES IV', 63, NULL),
-(259, '11180856DA', 'ELECTIVA III ESPECIALIZADA', 63, NULL),
-(260, '11180957DA', 'ROBOTICA', 63, NULL),
-(261, '11180960DA', 'ELEACTIVA IV ESPECIALIZADA', 63, NULL),
-(262, '19242221NN', 'FUNADMENTOS Y METODOLOGÍA DE LA INVESTIG', 63, NULL),
-(263, '11180211DA', 'FISICA I', 63, NULL),
-(264, '11180427DA', 'CIRCUITOS ANALOGICOS', 63, NULL),
-(265, '11180747DA', 'COMUNICACIONES PARA SISTEMAS ELECTRONICO', 63, NULL),
-(266, '11180851DA', 'CONTROL INTELIGENTE', 63, NULL),
-(267, '11181070DA', 'ELECTIVA VI ESPECIALIZADA', 63, NULL),
-(268, '12190206DB', 'FISICA I', 63, NULL),
-(269, '32221206DA', 'FISICA I', 63, NULL),
-(270, '36220103DA', 'FISICA I', 63, NULL);
-
---
--- Disparadores `cursos`
---
-DELIMITER $$
-CREATE TRIGGER `trg_curso_before_delete` BEFORE DELETE ON `cursos` FOR EACH ROW BEGIN
-    IF OLD.id_docente IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede eliminar el curso: tiene docente asignado.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_curso_before_insert` BEFORE INSERT ON `cursos` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Cursos WHERE codigo = NEW.codigo
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Ya existe un curso con ese código.';
-    END IF;
-END
-$$
-DELIMITER ;
+(272, '11180320DA', 'LABORATORIO INSTRUMENTACIÓN BASICA', 77, 57),
+(273, '11180426DA', 'CIRCUITOS DIGITALES I', 77, 57),
+(274, '11180529DA', 'CAD', 77, 59),
+(275, '11180533DA', 'CIRCUITOS DIGITALES II', 77, 60),
+(276, '11180641DA', 'LABORATORIO DE ELECTRONICA II', 77, 61),
+(277, '11180748DA', 'ELECTIVA I: OPTATIVA', 77, 57),
+(278, '11180749DA', 'INSTRUMENTACION INDUSTRIAL', 77, 63),
+(279, '32221208DA', 'CIRCUITOS ELECTRICOS II Y LABORATORIO', 77, NULL),
+(280, '11180639DA', 'SISTEMA DE CONTROL I', 77, NULL),
+(281, '11180959DA', 'SOFTWARE PARA  APLICACIONES INDUSTRIALES', 77, NULL),
+(282, '11181065DA', 'CONTROL DE PROCESOS', 77, NULL),
+(283, '18220146DA', 'MATEMATICA BASICA', 77, NULL),
+(284, '11180534DA', 'LABORATORIO DE ELECTRONICA I', 77, NULL),
+(285, '12190308DA', 'CALCULO II', 77, NULL),
+(286, '13200101DA', 'MATEMÁTICA I', 77, NULL),
+(287, '32221207DA', 'ALGEBRA LINEAL', 77, NULL),
+(288, '33220312DA', 'CALCULO II (INTEGRAL', 77, NULL),
+(289, '11180854DA', 'OPTOELECTRONICA', 77, NULL),
+(290, '11181064DA', 'ROBOTICA II', 77, NULL),
+(291, '11180213DA', 'CIRCUITOS ELECTRICOS II', 77, NULL),
+(292, '11180745DA', 'SISTEMA DE CONTROL II', 77, NULL),
+(293, '11180852DA', 'ELECTIVA II: OPTATIVA', 77, NULL),
+(294, '11180855DA', 'PLCs', 77, NULL),
+(295, '11180958DA', 'SCADA', 77, NULL),
+(296, '19203328DB', 'TALLER DE INVESTIGACIÓN', 77, NULL),
+(297, '12190204DA', 'CALCULO I', 77, NULL),
+(298, '12190205DA', 'ALGEBRA LINEAL', 77, NULL),
+(299, '18220206DA', 'ALGEBRA LINEAL', 77, NULL),
+(300, '36220205DA', 'CALCULO I (DIFERENCIAL)', 77, NULL),
+(301, '11180319DA', 'CIRCUITOS ELECTRONICOS', 77, NULL),
+(302, '11180638DA', 'CIRCUITOS DIGITALES III', 77, NULL),
+(303, '11180642DA', 'CIRCUITOS DE POTENCIA', 77, NULL),
+(304, '11180744DA', 'CIRCUITOS DIGITALES IV', 77, NULL),
+(305, '11180856DA', 'ELECTIVA III ESPECIALIZADA', 77, NULL),
+(306, '11180957DA', 'ROBOTICA', 77, NULL),
+(307, '11180960DA', 'ELEACTIVA IV ESPECIALIZADA', 77, NULL),
+(308, '19242221NN', 'FUNADMENTOS Y METODOLOGÍA DE LA INVESTIG', 77, NULL),
+(309, '11180211DA', 'FISICA I', 77, NULL),
+(310, '11180427DA', 'CIRCUITOS ANALOGICOS', 77, NULL),
+(311, '11180747DA', 'COMUNICACIONES PARA SISTEMAS ELECTRONICO', 77, NULL),
+(312, '11180851DA', 'CONTROL INTELIGENTE', 77, NULL),
+(313, '11181070DA', 'ELECTIVA VI ESPECIALIZADA', 77, NULL),
+(314, '12190206DB', 'FISICA I', 77, NULL),
+(315, '32221206DA', 'FISICA I', 77, NULL),
+(316, '36220103DA', 'FISICA I', 77, NULL);
 
 -- --------------------------------------------------------
 
@@ -1113,50 +1076,13 @@ CREATE TABLE `docente` (
 --
 
 INSERT INTO `docente` (`id_docente`, `id_usuario`, `cod_docente`) VALUES
-(43, 1, 128),
-(44, 2, 567),
-(45, 3, 986),
-(46, 4, 456),
-(47, 5, 456),
-(48, 6, 123),
-(49, 7, 453);
-
---
--- Disparadores `docente`
---
-DELIMITER $$
-CREATE TRIGGER `trg_docente_before_delete` BEFORE DELETE ON `docente` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Cursos WHERE id_docente = OLD.id_docente
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede eliminar el docente: tiene cursos asignados.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_docente_before_insert` BEFORE INSERT ON `docente` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Docente WHERE cod_docente = NEW.cod_docente
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El docente ya está registrado.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_docente_before_update` BEFORE UPDATE ON `docente` FOR EACH ROW BEGIN
-    IF NEW.id_docente != OLD.id_docente AND EXISTS (
-        SELECT 1 FROM Evaluaciones WHERE id_docente = OLD.id_docente
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede cambiar el ID del docente con evaluaciones asociadas.';
-    END IF;
-END
-$$
-DELIMITER ;
+(57, 1, 128),
+(58, 2, 567),
+(59, 3, 986),
+(60, 4, 456),
+(61, 5, 456),
+(62, 6, 123),
+(63, 7, 453);
 
 -- --------------------------------------------------------
 
@@ -1177,13 +1103,13 @@ CREATE TABLE `docentes_no_autoevaluados` (
 --
 
 INSERT INTO `docentes_no_autoevaluados` (`id_docente_No_Evaluado`, `id_facultad`, `id_coordinacion`, `id_programa`, `id_docente`) VALUES
-(2, 2, NULL, NULL, 43),
-(3, 3, NULL, 68, 44),
-(4, 4, NULL, NULL, 45),
-(5, 2, NULL, NULL, 46),
-(6, 5, NULL, NULL, 47),
-(7, 2, 2, NULL, 48),
-(8, 2, NULL, NULL, 49);
+(9, 2, NULL, NULL, 57),
+(10, 3, NULL, 82, 58),
+(11, 4, NULL, NULL, 59),
+(12, 2, NULL, NULL, 60),
+(13, 5, NULL, NULL, 61),
+(14, 2, 2, NULL, 62),
+(15, 2, NULL, NULL, 63);
 
 -- --------------------------------------------------------
 
@@ -1208,116 +1134,116 @@ CREATE TABLE `estudiantes_no_evaluaron` (
 --
 
 INSERT INTO `estudiantes_no_evaluaron` (`id_estudiante`, `id_facultad`, `id_programa`, `semestre`, `cod_estudiante`, `nombre`, `email`, `codigo_curso`, `nombre_curso`) VALUES
-(13, 2, 63, 1, 3241, 'Jaime', 'adsf', '12343', 'FISICA II'),
-(14, 3, 64, 2, 2134, 'luiz', 'asdfa', '3423', 'CIRCUITOS ELECTRONICOS'),
-(15, 4, 65, 3, 23412, 'dfa', 'asdfa', '324234', 'LABORATORIO INSTRUMENTACIÓN BASICA'),
-(16, 2, 66, 4, 2134, 'sadf', 'asdfa', '2342', 'FUNDAMENTOS DE INVESTIGACIÓN'),
-(17, 5, 63, 5, 2134123, 'asdf', 'sdf', '23423', 'CALCULO I (DIFERENCIAL)'),
-(18, 2, 68, 7, 213412, 'sdfa', 'asdfa', '234', 'CIRCUITOS ELECTRONICOS'),
-(19, 2, 63, 1, 213413, 'sdfa', 'asdfa', '234', 'LABORATORIO INSTRUMENTACIÓN BASICA'),
-(20, NULL, 63, 1, 822236, '', '', '3245.2857142857', 'CALCULO II'),
-(21, NULL, 63, 1, 935228, '', '', '-9023.1428571429', 'CIRCUITOS ANALOGICOS'),
-(22, NULL, 63, 1, 1048221, '', '', '-21291.571428571', 'LABORATORIO INTEGRADO DE FISICA'),
-(23, NULL, 63, 1, 1161213, '', '', '-33560', 'CIRCUITOS DIGITALES II'),
-(24, NULL, 63, 1, 1274205, '', '', '-45828.428571429', 'SISTEMA ESTOCÁSTICO'),
-(25, NULL, 63, 1, 1387197, '', '', '-58096.857142857', 'SISTEMA DE CONTROL I'),
-(26, NULL, 63, 1, 1500190, '', '', '-70365.285714286', 'ADMINISTRACIÓN'),
-(27, NULL, 63, 1, 1613182, '', '', '-82633.714285714', 'METODOLOGIA DE LA INVESTIGACIÓN'),
-(28, NULL, 63, 1, 1726174, '', '', '-94902.142857143', 'LABORATORIO DE ELECTRONICA II'),
-(29, NULL, 63, 1, 1839166, '', '', '-107170.57142857', 'ELECTIVA I: OPTATIVA'),
-(30, NULL, 63, 1, 1952159, '', '', '-119439', 'ELEACTIVA IV ESPECIALIZADA'),
-(31, NULL, 63, 1, 2065151, '', '', '-131707.42857143', 'DERECHO LABORAL'),
-(32, NULL, 63, 1, 2178143, '', '', '-143975.85714286', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
-(33, NULL, 63, 1, 2291135, '', '', '-156244.28571429', 'TALLER DE INVESTIGACIÓN'),
-(34, NULL, 63, 1, 2404128, '', '', '-168512.71428571', 'FISICA I'),
-(35, NULL, 63, 1, 2517120, '', '', '-180781.14285714', 'INGLES I'),
-(36, NULL, 63, 1, 2630112, '', '', '-193049.57142857', 'FILOSOFIA'),
-(37, NULL, 63, 1, 2743104, '', '', '-205318', 'COMPETENCIAS CIUDADANAS'),
-(38, NULL, 63, 1, 2856097, '', '', '-217586.42857143', 'CIRCUITOS ELÉCTRICOS I'),
-(39, NULL, 63, 1, 2969089, '', '', '-229854.85714286', 'CALCULO I (DIFERENCIAL)'),
-(40, NULL, 63, 1, 3082081, '', '', '-242123.28571429', 'INTRODUCCIÓN A LA PROGRAMACION'),
-(41, NULL, 63, 1, 3195073, '', '', '-254391.71428571', 'CIRCUITOS ELECTRICOS II'),
-(42, NULL, 63, 1, 3308066, '', '', '-266660.14285714', 'FISICA II'),
-(43, NULL, 63, 1, 3421058, '', '', '-278928.57142857', 'CAD'),
-(44, NULL, 63, 1, 3534050, '', '', '-291197', 'ELECTIVA I: OPTATIVA'),
-(45, NULL, 63, 1, 3647042, '', '', '-303465.42857143', 'GESTIÓN TECNOLÓGICA Y FINANCIERA'),
-(46, NULL, 63, 1, 3760035, '', '', '-315733.85714286', 'INGLES III'),
-(47, NULL, 63, 1, 3873027, '', '', '-328002.28571429', 'CALCULO I (DIFERENCIAL)'),
-(48, NULL, 63, 1, 3986019, '', '', '-340270.71428571', 'CALCULO III'),
-(49, NULL, 63, 1, 4099011, '', '', '-352539.14285714', 'LABORATORIO INTEGRADO DE FISICA'),
-(50, NULL, 63, 1, 4212004, '', '', '-364807.57142857', 'CIRCUITOS DIGITALES I'),
-(51, NULL, 63, 1, 4324996, '', '', '-377076', 'CIRCUITOS ANALOGICOS'),
-(52, NULL, 63, 1, 4437988, '', '', '-389344.42857143', 'CAD'),
-(53, NULL, 63, 1, 4550980, '', '', '-401612.85714286', 'ADMINISTRACIÓN'),
-(54, NULL, 63, 1, 4663973, '', '', '-413881.28571429', 'CALCULO II'),
-(55, NULL, 63, 1, 4776965, '', '', '-426149.71428571', 'INGLES II'),
-(56, NULL, 63, 1, 4889957, '', '', '-438418.14285714', 'TECNOLOGIA Y SOCIEDAD'),
-(57, NULL, 63, 1, 5002949, '', '', '-450686.57142857', 'CALCULO II'),
-(58, NULL, 63, 1, 5115942, '', '', '-462955', 'INGLES II'),
-(59, NULL, 63, 1, 5228934, '', '', '-475223.42857143', 'FUNDAMENTOS DE INVESTIGACIÓN'),
-(60, NULL, 63, 1, 5341926, '', '', '-487491.85714286', 'METODOLOGIA DE LA INVESTIGACIÓN'),
-(61, NULL, 63, 1, 5454918, '', '', '-499760.28571429', 'FISICA I'),
-(62, NULL, 63, 1, 5567911, '', '', '-512028.71428571', 'CALCULO I'),
-(63, NULL, 63, 1, 5680903, '', '', '-524297.14285714', 'INGLES I'),
-(64, NULL, 63, 1, 5793895, '', '', '-536565.57142857', 'CAD'),
-(65, NULL, 63, 1, 5906887, '', '', '-548834', 'CIRCUITOS DIGITALES II'),
-(66, NULL, 63, 1, 6019880, '', '', '-561102.42857143', 'LABORATORIO DE ELECTRONICA I'),
-(67, NULL, 63, 1, 6132872, '', '', '-573370.85714286', 'CIRCUITOS ELECTRONICOS'),
-(68, NULL, 63, 1, 6245864, '', '', '-585639.28571429', 'LABORATORIO INSTRUMENTACIÓN BASICA'),
-(69, NULL, 63, 1, 6358856, '', '', '-597907.71428571', 'FISICA III'),
-(70, NULL, 63, 1, 6471849, '', '', '-610176.14285714', 'ELECTIVA I: OPTATIVA'),
-(71, NULL, 63, 1, 6584841, '', '', '-622444.57142857', 'ELECTIVA II: OPTATIVA'),
-(72, NULL, 63, 1, 6697833, '', '', '-634713', 'METODOLOGIA DE LA INVESTIGACIÓN'),
-(73, NULL, 63, 2, 6810825, '', '', '-646981.42857143', 'CONTROL INTELIGENTE'),
-(74, NULL, 63, 2, 6923818, '', '', '-659249.85714286', 'ELECTIVA II: OPTATIVA'),
-(75, NULL, 63, 2, 7036810, '', '', '-671518.28571429', 'GESTION FINANCIERA'),
-(76, NULL, 63, 2, 7149802, '', '', '-683786.71428571', 'OPTOELECTRONICA'),
-(77, NULL, 63, 2, 7262794, '', '', '-696055.14285714', 'PLCs'),
-(78, NULL, 63, 2, 7375787, '', '', '-708323.57142857', 'ELECTIVA III ESPECIALIZADA'),
-(79, NULL, 63, 2, 7488779, '', '', '-720592', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
-(80, NULL, 63, 2, 7601771, '', '', '-732860.42857143', 'TALLER DE INVESTIGACIÓN'),
-(81, NULL, 63, 2, 7714763, '', '', '-745128.85714286', 'CIRCUITOS ELECTRICOS II'),
-(82, NULL, 63, 2, 7827756, '', '', '-757397.28571429', 'ADMINISTRACIÓN'),
-(83, NULL, 63, 2, 7940748, '', '', '-769665.71428571', 'CALCULO I'),
-(84, NULL, 63, 2, 8053740, '', '', '-781934.14285714', 'PROGRAMACION II'),
-(85, NULL, 63, 2, 8166732, '', '', '-794202.57142857', 'INGLES III'),
-(86, NULL, 63, 2, 8279725, '', '', '-806471', 'CONTROL INTELIGENTE'),
-(87, NULL, 63, 2, 8392717, '', '', '-818739.42857143', 'ELECTIVA II: OPTATIVA'),
-(88, NULL, 63, 2, 8505709, '', '', '-831007.85714286', 'OPTOELECTRONICA'),
-(89, NULL, 63, 2, 8618701, '', '', '-843276.28571429', 'PLCs'),
-(90, NULL, 63, 2, 8731694, '', '', '-855544.71428571', 'ELECTIVA III ESPECIALIZADA'),
-(91, NULL, 63, 2, 8844686, '', '', '-867813.14285714', 'ETICA'),
-(92, NULL, 63, 2, 8957678, '', '', '-880081.57142857', 'TALLER DE INVESTIGACIÓN'),
-(93, NULL, 63, 2, 9070670, '', '', '-892350', 'CONTROL INTELIGENTE'),
-(94, NULL, 63, 2, 9183663, '', '', '-904618.42857143', 'ELECTIVA II: OPTATIVA'),
-(95, NULL, 63, 2, 9296655, '', '', '-916886.85714286', 'GESTION FINANCIERA'),
-(96, NULL, 63, 2, 9409647, '', '', '-929155.28571429', 'OPTOELECTRONICA'),
-(97, NULL, 63, 2, 9522639, '', '', '-941423.71428571', 'PLCs'),
-(98, NULL, 63, 2, 9635632, '', '', '-953692.14285714', 'ELECTIVA III ESPECIALIZADA'),
-(99, NULL, 63, 2, 9748624, '', '', '-965960.57142857', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
-(100, NULL, 63, 2, 9861616, '', '', '-978229', 'TALLER DE INVESTIGACIÓN'),
-(101, NULL, 63, 2, 9974608, '', '', '-990497.42857143', 'ROBOTICA'),
-(102, NULL, 63, 2, 10087601, '', '', '-1002765.8571429', 'CONTROL DE PROCESOS'),
-(103, NULL, 63, 2, 10200593, '', '', '-1015034.2857143', 'ELECTIVA V ESPECIALIZADA'),
-(104, NULL, 63, 3, 10313585, '', '', '-1027302.7142857', 'CIRCUITOS DIGITALES III'),
-(105, NULL, 63, 3, 10426577, '', '', '-1039571.1428571', 'CONTROL INTELIGENTE'),
-(106, NULL, 63, 3, 10539570, '', '', '-1051839.5714286', 'ELECTIVA II: OPTATIVA'),
-(107, NULL, 63, 3, 10652562, '', '', '-1064108', 'OPTOELECTRONICA'),
-(108, NULL, 63, 3, 10765554, '', '', '-1076376.4285714', 'PLCs'),
-(109, NULL, 63, 3, 10878546, '', '', '-1088644.8571429', 'ELECTIVA III ESPECIALIZADA'),
-(110, NULL, 63, 3, 10991539, '', '', '-1100913.2857143', 'TALLER DE INVESTIGACIÓN'),
-(111, NULL, 63, 4, 11104531, '', '', '-1113181.7142857', 'CONTROL INTELIGENTE'),
-(112, NULL, 63, 4, 11217523, '', '', '-1125450.1428571', 'ROBOTICA II'),
-(113, NULL, 63, 4, 11330515, '', '', '-1137718.5714286', 'ELECTIVA VI ESPECIALIZADA'),
-(114, NULL, 63, 4, 11443508, '', '', '-1149987', 'CIRCUITOS DE POTENCIA'),
-(115, NULL, 63, 4, 11556500, '', '', '-1162255.4285714', 'SISTEMA DE CONTROL II'),
-(116, NULL, 63, 4, 11669492, '', '', '-1174523.8571429', 'ELECTIVA I: OPTATIVA'),
-(117, NULL, 63, 4, 11782484, '', '', '-1186792.2857143', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
-(118, NULL, 63, 4, 11895477, '', '', '-1199060.7142857', 'TRANSFORMACIÓN DIGITAL E INNOVACIÓN'),
-(119, NULL, 63, 10, 12008469, '', '', '-1211329.1428571', 'SCADA'),
-(120, NULL, 63, 10, 12121461, '', '', '-1223597.5714286', 'SOFTWARE PARA  APLICACIONES INDUSTRIALES'),
-(121, NULL, 63, 10, 12234453, '', '', '-1235866', 'INGLES IV'),
-(122, NULL, 63, 10, 12347446, '', '', '-1248134.4285714', 'OBSERVACIÓN DEL ENTORNO');
+(20, 2, 77, 1, 3241, 'Jaime', 'adsf', '12343', 'FISICA II'),
+(21, 3, 78, 2, 2134, 'luiz', 'asdfa', '3423', 'CIRCUITOS ELECTRONICOS'),
+(22, 4, 79, 3, 23412, 'dfa', 'asdfa', '324234', 'LABORATORIO INSTRUMENTACIÓN BASICA'),
+(23, 2, 80, 4, 2134, 'sadf', 'asdfa', '2342', 'FUNDAMENTOS DE INVESTIGACIÓN'),
+(24, 5, 77, 5, 2134123, 'asdf', 'sdf', '23423', 'CALCULO I (DIFERENCIAL)'),
+(25, 2, 82, 7, 213412, 'sdfa', 'asdfa', '234', 'CIRCUITOS ELECTRONICOS'),
+(26, 2, 77, 1, 213413, 'sdfa', 'asdfa', '234', 'LABORATORIO INSTRUMENTACIÓN BASICA'),
+(27, NULL, 77, 1, 822236, '', '', '3245.2857142857', 'CALCULO II'),
+(28, NULL, 77, 1, 935228, '', '', '-9023.1428571429', 'CIRCUITOS ANALOGICOS'),
+(29, NULL, 77, 1, 1048221, '', '', '-21291.571428571', 'LABORATORIO INTEGRADO DE FISICA'),
+(30, NULL, 77, 1, 1161213, '', '', '-33560', 'CIRCUITOS DIGITALES II'),
+(31, NULL, 77, 1, 1274205, '', '', '-45828.428571429', 'SISTEMA ESTOCÁSTICO'),
+(32, NULL, 77, 1, 1387197, '', '', '-58096.857142857', 'SISTEMA DE CONTROL I'),
+(33, NULL, 77, 1, 1500190, '', '', '-70365.285714286', 'ADMINISTRACIÓN'),
+(34, NULL, 77, 1, 1613182, '', '', '-82633.714285714', 'METODOLOGIA DE LA INVESTIGACIÓN'),
+(35, NULL, 77, 1, 1726174, '', '', '-94902.142857143', 'LABORATORIO DE ELECTRONICA II'),
+(36, NULL, 77, 1, 1839166, '', '', '-107170.57142857', 'ELECTIVA I: OPTATIVA'),
+(37, NULL, 77, 1, 1952159, '', '', '-119439', 'ELEACTIVA IV ESPECIALIZADA'),
+(38, NULL, 77, 1, 2065151, '', '', '-131707.42857143', 'DERECHO LABORAL'),
+(39, NULL, 77, 1, 2178143, '', '', '-143975.85714286', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
+(40, NULL, 77, 1, 2291135, '', '', '-156244.28571429', 'TALLER DE INVESTIGACIÓN'),
+(41, NULL, 77, 1, 2404128, '', '', '-168512.71428571', 'FISICA I'),
+(42, NULL, 77, 1, 2517120, '', '', '-180781.14285714', 'INGLES I'),
+(43, NULL, 77, 1, 2630112, '', '', '-193049.57142857', 'FILOSOFIA'),
+(44, NULL, 77, 1, 2743104, '', '', '-205318', 'COMPETENCIAS CIUDADANAS'),
+(45, NULL, 77, 1, 2856097, '', '', '-217586.42857143', 'CIRCUITOS ELÉCTRICOS I'),
+(46, NULL, 77, 1, 2969089, '', '', '-229854.85714286', 'CALCULO I (DIFERENCIAL)'),
+(47, NULL, 77, 1, 3082081, '', '', '-242123.28571429', 'INTRODUCCIÓN A LA PROGRAMACION'),
+(48, NULL, 77, 1, 3195073, '', '', '-254391.71428571', 'CIRCUITOS ELECTRICOS II'),
+(49, NULL, 77, 1, 3308066, '', '', '-266660.14285714', 'FISICA II'),
+(50, NULL, 77, 1, 3421058, '', '', '-278928.57142857', 'CAD'),
+(51, NULL, 77, 1, 3534050, '', '', '-291197', 'ELECTIVA I: OPTATIVA'),
+(52, NULL, 77, 1, 3647042, '', '', '-303465.42857143', 'GESTIÓN TECNOLÓGICA Y FINANCIERA'),
+(53, NULL, 77, 1, 3760035, '', '', '-315733.85714286', 'INGLES III'),
+(54, NULL, 77, 1, 3873027, '', '', '-328002.28571429', 'CALCULO I (DIFERENCIAL)'),
+(55, NULL, 77, 1, 3986019, '', '', '-340270.71428571', 'CALCULO III'),
+(56, NULL, 77, 1, 4099011, '', '', '-352539.14285714', 'LABORATORIO INTEGRADO DE FISICA'),
+(57, NULL, 77, 1, 4212004, '', '', '-364807.57142857', 'CIRCUITOS DIGITALES I'),
+(58, NULL, 77, 1, 4324996, '', '', '-377076', 'CIRCUITOS ANALOGICOS'),
+(59, NULL, 77, 1, 4437988, '', '', '-389344.42857143', 'CAD'),
+(60, NULL, 77, 1, 4550980, '', '', '-401612.85714286', 'ADMINISTRACIÓN'),
+(61, NULL, 77, 1, 4663973, '', '', '-413881.28571429', 'CALCULO II'),
+(62, NULL, 77, 1, 4776965, '', '', '-426149.71428571', 'INGLES II'),
+(63, NULL, 77, 1, 4889957, '', '', '-438418.14285714', 'TECNOLOGIA Y SOCIEDAD'),
+(64, NULL, 77, 1, 5002949, '', '', '-450686.57142857', 'CALCULO II'),
+(65, NULL, 77, 1, 5115942, '', '', '-462955', 'INGLES II'),
+(66, NULL, 77, 1, 5228934, '', '', '-475223.42857143', 'FUNDAMENTOS DE INVESTIGACIÓN'),
+(67, NULL, 77, 1, 5341926, '', '', '-487491.85714286', 'METODOLOGIA DE LA INVESTIGACIÓN'),
+(68, NULL, 77, 1, 5454918, '', '', '-499760.28571429', 'FISICA I'),
+(69, NULL, 77, 1, 5567911, '', '', '-512028.71428571', 'CALCULO I'),
+(70, NULL, 77, 1, 5680903, '', '', '-524297.14285714', 'INGLES I'),
+(71, NULL, 77, 1, 5793895, '', '', '-536565.57142857', 'CAD'),
+(72, NULL, 77, 1, 5906887, '', '', '-548834', 'CIRCUITOS DIGITALES II'),
+(73, NULL, 77, 1, 6019880, '', '', '-561102.42857143', 'LABORATORIO DE ELECTRONICA I'),
+(74, NULL, 77, 1, 6132872, '', '', '-573370.85714286', 'CIRCUITOS ELECTRONICOS'),
+(75, NULL, 77, 1, 6245864, '', '', '-585639.28571429', 'LABORATORIO INSTRUMENTACIÓN BASICA'),
+(76, NULL, 77, 1, 6358856, '', '', '-597907.71428571', 'FISICA III'),
+(77, NULL, 77, 1, 6471849, '', '', '-610176.14285714', 'ELECTIVA I: OPTATIVA'),
+(78, NULL, 77, 1, 6584841, '', '', '-622444.57142857', 'ELECTIVA II: OPTATIVA'),
+(79, NULL, 77, 1, 6697833, '', '', '-634713', 'METODOLOGIA DE LA INVESTIGACIÓN'),
+(80, NULL, 77, 2, 6810825, '', '', '-646981.42857143', 'CONTROL INTELIGENTE'),
+(81, NULL, 77, 2, 6923818, '', '', '-659249.85714286', 'ELECTIVA II: OPTATIVA'),
+(82, NULL, 77, 2, 7036810, '', '', '-671518.28571429', 'GESTION FINANCIERA'),
+(83, NULL, 77, 2, 7149802, '', '', '-683786.71428571', 'OPTOELECTRONICA'),
+(84, NULL, 77, 2, 7262794, '', '', '-696055.14285714', 'PLCs'),
+(85, NULL, 77, 2, 7375787, '', '', '-708323.57142857', 'ELECTIVA III ESPECIALIZADA'),
+(86, NULL, 77, 2, 7488779, '', '', '-720592', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
+(87, NULL, 77, 2, 7601771, '', '', '-732860.42857143', 'TALLER DE INVESTIGACIÓN'),
+(88, NULL, 77, 2, 7714763, '', '', '-745128.85714286', 'CIRCUITOS ELECTRICOS II'),
+(89, NULL, 77, 2, 7827756, '', '', '-757397.28571429', 'ADMINISTRACIÓN'),
+(90, NULL, 77, 2, 7940748, '', '', '-769665.71428571', 'CALCULO I'),
+(91, NULL, 77, 2, 8053740, '', '', '-781934.14285714', 'PROGRAMACION II'),
+(92, NULL, 77, 2, 8166732, '', '', '-794202.57142857', 'INGLES III'),
+(93, NULL, 77, 2, 8279725, '', '', '-806471', 'CONTROL INTELIGENTE'),
+(94, NULL, 77, 2, 8392717, '', '', '-818739.42857143', 'ELECTIVA II: OPTATIVA'),
+(95, NULL, 77, 2, 8505709, '', '', '-831007.85714286', 'OPTOELECTRONICA'),
+(96, NULL, 77, 2, 8618701, '', '', '-843276.28571429', 'PLCs'),
+(97, NULL, 77, 2, 8731694, '', '', '-855544.71428571', 'ELECTIVA III ESPECIALIZADA'),
+(98, NULL, 77, 2, 8844686, '', '', '-867813.14285714', 'ETICA'),
+(99, NULL, 77, 2, 8957678, '', '', '-880081.57142857', 'TALLER DE INVESTIGACIÓN'),
+(100, NULL, 77, 2, 9070670, '', '', '-892350', 'CONTROL INTELIGENTE'),
+(101, NULL, 77, 2, 9183663, '', '', '-904618.42857143', 'ELECTIVA II: OPTATIVA'),
+(102, NULL, 77, 2, 9296655, '', '', '-916886.85714286', 'GESTION FINANCIERA'),
+(103, NULL, 77, 2, 9409647, '', '', '-929155.28571429', 'OPTOELECTRONICA'),
+(104, NULL, 77, 2, 9522639, '', '', '-941423.71428571', 'PLCs'),
+(105, NULL, 77, 2, 9635632, '', '', '-953692.14285714', 'ELECTIVA III ESPECIALIZADA'),
+(106, NULL, 77, 2, 9748624, '', '', '-965960.57142857', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
+(107, NULL, 77, 2, 9861616, '', '', '-978229', 'TALLER DE INVESTIGACIÓN'),
+(108, NULL, 77, 2, 9974608, '', '', '-990497.42857143', 'ROBOTICA'),
+(109, NULL, 77, 2, 10087601, '', '', '-1002765.8571429', 'CONTROL DE PROCESOS'),
+(110, NULL, 77, 2, 10200593, '', '', '-1015034.2857143', 'ELECTIVA V ESPECIALIZADA'),
+(111, NULL, 77, 3, 10313585, '', '', '-1027302.7142857', 'CIRCUITOS DIGITALES III'),
+(112, NULL, 77, 3, 10426577, '', '', '-1039571.1428571', 'CONTROL INTELIGENTE'),
+(113, NULL, 77, 3, 10539570, '', '', '-1051839.5714286', 'ELECTIVA II: OPTATIVA'),
+(114, NULL, 77, 3, 10652562, '', '', '-1064108', 'OPTOELECTRONICA'),
+(115, NULL, 77, 3, 10765554, '', '', '-1076376.4285714', 'PLCs'),
+(116, NULL, 77, 3, 10878546, '', '', '-1088644.8571429', 'ELECTIVA III ESPECIALIZADA'),
+(117, NULL, 77, 3, 10991539, '', '', '-1100913.2857143', 'TALLER DE INVESTIGACIÓN'),
+(118, NULL, 77, 4, 11104531, '', '', '-1113181.7142857', 'CONTROL INTELIGENTE'),
+(119, NULL, 77, 4, 11217523, '', '', '-1125450.1428571', 'ROBOTICA II'),
+(120, NULL, 77, 4, 11330515, '', '', '-1137718.5714286', 'ELECTIVA VI ESPECIALIZADA'),
+(121, NULL, 77, 4, 11443508, '', '', '-1149987', 'CIRCUITOS DE POTENCIA'),
+(122, NULL, 77, 4, 11556500, '', '', '-1162255.4285714', 'SISTEMA DE CONTROL II'),
+(123, NULL, 77, 4, 11669492, '', '', '-1174523.8571429', 'ELECTIVA I: OPTATIVA'),
+(124, NULL, 77, 4, 11782484, '', '', '-1186792.2857143', 'EDUCACIÓN Y LEGISLACIÓN AMBIENTAL'),
+(125, NULL, 77, 4, 11895477, '', '', '-1199060.7142857', 'TRANSFORMACIÓN DIGITAL E INNOVACIÓN'),
+(126, NULL, 77, 10, 12008469, '', '', '-1211329.1428571', 'SCADA'),
+(127, NULL, 77, 10, 12121461, '', '', '-1223597.5714286', 'SOFTWARE PARA  APLICACIONES INDUSTRIALES'),
+(128, NULL, 77, 10, 12234453, '', '', '-1235866', 'INGLES IV'),
+(129, NULL, 77, 10, 12347446, '', '', '-1248134.4285714', 'OBSERVACIÓN DEL ENTORNO');
 
 -- --------------------------------------------------------
 
@@ -1340,53 +1266,13 @@ CREATE TABLE `evaluaciones` (
 --
 
 INSERT INTO `evaluaciones` (`id_evaluacion`, `id_docente`, `autoevaluacion`, `evaluacion_decano`, `evaluacion_estudiantes`, `promedio_total`, `id_programa`) VALUES
-(9, 43, 2.50, 3.50, 4.50, 5.50, 63),
-(10, 44, 3.50, 4.50, 5.50, 6.50, 64),
-(11, 45, 4.50, 5.50, 6.50, 4.00, 65),
-(12, 46, 5.50, 6.50, 7.50, 8.50, 66),
-(13, 47, 6.50, 7.50, 8.50, 9.50, 63),
-(14, 48, 7.50, 8.50, 9.50, 4.00, 68),
-(15, 49, 8.50, 9.50, 6.50, 4.50, 63);
-
---
--- Disparadores `evaluaciones`
---
-DELIMITER $$
-CREATE TRIGGER `trg_evaluacion_before_delete` BEFORE DELETE ON `evaluaciones` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Acta_Compromiso ac
-        JOIN Promedio_Evaluacion_Docente_Por_Curso p ON ac.id_promedio = p.id_promedio
-        WHERE p.id_docente = OLD.id_docente
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede eliminar la evaluación: está asociada a un acta de compromiso.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_evaluacion_rango_notas` BEFORE INSERT ON `evaluaciones` FOR EACH ROW BEGIN
-    IF NEW.autoevaluacion < 0 OR NEW.autoevaluacion > 5 OR
-       NEW.evaluacion_decano < 0 OR NEW.evaluacion_decano > 5 OR
-       NEW.evaluacion_estudiantes < 0 OR NEW.evaluacion_estudiantes > 5 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Las notas deben estar entre 0 y 5.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_validar_promedio_total` BEFORE INSERT ON `evaluaciones` FOR EACH ROW BEGIN
-    DECLARE promedio_calc DECIMAL(3,2);
-    SET promedio_calc = ROUND((NEW.autoevaluacion + NEW.evaluacion_decano + NEW.evaluacion_estudiantes)/3, 2);
-
-    IF NEW.promedio_total != promedio_calc THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El promedio total no coincide con la media de las evaluaciones.';
-    END IF;
-END
-$$
-DELIMITER ;
+(15, 57, 2.50, 3.50, 4.50, 5.50, 77),
+(16, 58, 3.50, 4.50, 5.50, 6.50, 78),
+(17, 59, 4.50, 5.50, 6.50, 7.50, 79),
+(18, 60, 5.50, 6.50, 7.50, 8.50, 80),
+(19, 61, 6.50, 7.50, 8.50, 9.50, 77),
+(20, 62, 7.50, 8.50, 9.50, 7.50, 82),
+(21, 63, 8.50, 9.50, 6.50, 4.50, 77);
 
 -- --------------------------------------------------------
 
@@ -1410,21 +1296,6 @@ INSERT INTO `facultad` (`id_facultad`, `id_coordinacion`, `nombre`) VALUES
 (3, 3, 'Facultad de Administración'),
 (4, 4, 'Facultad de Contaduría'),
 (5, 5, 'Facultad de Deporte');
-
---
--- Disparadores `facultad`
---
-DELIMITER $$
-CREATE TRIGGER `trg_facultad_before_delete` BEFORE DELETE ON `facultad` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Programas WHERE id_facultad = OLD.id_facultad
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede eliminar la facultad: tiene programas asociados.';
-    END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -1457,25 +1328,25 @@ CREATE TABLE `periodos_academicos` (
 --
 
 INSERT INTO `periodos_academicos` (`id_periodo`, `nombre`, `fecha_inicio`, `fecha_fin`) VALUES
-(210, '2024-08-05', '2024-08-05', '2024-11-27'),
-(211, '2024-08-05', '2024-08-05', '2024-11-27'),
-(212, '2024-08-05', '2024-08-05', '2024-11-27'),
-(213, '2024-08-05', '2024-08-05', '2024-11-27'),
-(214, '2020-08-05', '2020-08-05', '2024-11-27'),
-(215, '2024-08-05', '2024-08-05', '2024-11-27'),
-(216, '2024-08-05', '2024-08-05', '2024-11-27'),
-(217, '2024-08-05', '2024-08-05', '2024-11-27'),
-(218, '2024-08-05', '2024-08-05', '2024-11-27'),
-(219, NULL, NULL, NULL),
-(220, NULL, NULL, NULL),
-(221, NULL, NULL, NULL),
-(222, NULL, NULL, NULL),
-(223, NULL, NULL, NULL),
-(224, NULL, NULL, NULL),
-(225, NULL, NULL, NULL),
-(226, NULL, NULL, NULL),
-(227, NULL, NULL, NULL),
-(228, NULL, NULL, NULL);
+(229, '2024-08-05', '2024-08-05', '2024-11-27'),
+(230, '2024-08-05', '2024-08-05', '2024-11-27'),
+(231, '2024-08-05', '2024-08-05', '2024-11-27'),
+(232, '2024-08-05', '2024-08-05', '2024-11-27'),
+(233, '2020-08-05', '2020-08-05', '2024-11-27'),
+(234, '2024-08-05', '2024-08-05', '2024-11-27'),
+(235, '2024-08-05', '2024-08-05', '2024-11-27'),
+(236, '2024-08-05', '2024-08-05', '2024-11-27'),
+(237, '2024-08-05', '2024-08-05', '2024-11-27'),
+(238, NULL, NULL, NULL),
+(239, NULL, NULL, NULL),
+(240, NULL, NULL, NULL),
+(241, NULL, NULL, NULL),
+(242, NULL, NULL, NULL),
+(243, NULL, NULL, NULL),
+(244, NULL, NULL, NULL),
+(245, NULL, NULL, NULL),
+(246, NULL, NULL, NULL),
+(247, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1525,31 +1396,6 @@ CREATE TABLE `proceso_sancion` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `proceso_sancion_retiro`
---
-
-CREATE TABLE `proceso_sancion_retiro` (
-  `id` int(11) NOT NULL,
-  `id_docente` int(11) NOT NULL,
-  `numero_resolucion` varchar(50) NOT NULL,
-  `fecha_emision` date NOT NULL,
-  `nombre_docente` varchar(100) NOT NULL,
-  `apellido_docente` varchar(100) NOT NULL,
-  `identificacion_docente` varchar(20) NOT NULL,
-  `asignatura` varchar(100) NOT NULL,
-  `calificacion_final` decimal(5,2) NOT NULL,
-  `tipo_sancion` enum('leve','grave','retiro') NOT NULL,
-  `antecedentes` text NOT NULL,
-  `fundamentos` text NOT NULL,
-  `resolucion` text NOT NULL,
-  `firma` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `programas`
 --
 
@@ -1565,28 +1411,13 @@ CREATE TABLE `programas` (
 --
 
 INSERT INTO `programas` (`id_programa`, `id_docente`, `nombre`, `id_facultad`) VALUES
-(63, 43, 'INGENIERIA ELECTRONICA', 1),
-(64, 44, 'INGENIERIA SOFTWARE', 1),
-(65, 45, 'INGENIERIA AMBIENTAL', 1),
-(66, 46, 'DEPORTES ', 5),
-(67, 47, 'INGENIERIA ELECTRONICA', 1),
-(68, 48, 'DERECHO', 2),
-(69, 49, 'INGENIERIA ELECTRONICA', 1);
-
---
--- Disparadores `programas`
---
-DELIMITER $$
-CREATE TRIGGER `trg_programa_before_delete` BEFORE DELETE ON `programas` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Cursos WHERE id_programa = OLD.id_programa
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede eliminar el programa: tiene cursos asignados.';
-    END IF;
-END
-$$
-DELIMITER ;
+(77, 57, 'INGENIERIA ELECTRONICA', NULL),
+(78, 58, 'INGENIERIA SOFTWARE', NULL),
+(79, 59, 'INGENIERIA AMBIENTAL', NULL),
+(80, 60, 'DEPORTES ', NULL),
+(81, 61, 'INGENIERIA ELECTRONICA', NULL),
+(82, 62, 'DERECHO', NULL),
+(83, 63, 'INGENIERIA ELECTRONICA', NULL);
 
 -- --------------------------------------------------------
 
@@ -1607,64 +1438,51 @@ CREATE TABLE `promedio_evaluacion_docente_por_curso` (
 --
 
 INSERT INTO `promedio_evaluacion_docente_por_curso` (`id_promedio`, `id_curso`, `id_docente`, `promedio_ev_docente`, `promedio_notas_curso`) VALUES
-(46, 226, 43, 4.00, 3.80),
-(47, 227, 44, 4.70, 2.90),
-(48, 228, 45, 5.00, 3.90),
-(49, 229, 46, 5.00, 3.60),
-(50, 230, 47, 4.80, 4.60),
-(51, 231, 48, 4.40, 3.20),
-(52, 232, 49, 4.60, 3.80),
-(53, 233, 49, 4.00, 2.80),
-(54, 234, NULL, 5.00, 3.90),
-(55, 235, NULL, 5.00, 4.20),
-(56, 236, NULL, 4.70, 3.60),
-(57, 237, NULL, 4.40, 3.30),
-(58, 238, NULL, 4.80, 4.00),
-(59, 239, NULL, 4.20, 3.50),
-(60, 240, NULL, 4.30, 3.10),
-(61, 241, NULL, 3.70, 3.00),
-(62, 242, NULL, 4.30, 3.70),
-(63, 243, NULL, 5.00, 4.70),
-(64, 244, NULL, 4.60, 3.80),
-(65, 245, NULL, 4.70, 3.40),
-(66, 246, NULL, 4.50, 3.20),
-(67, 247, NULL, 4.00, 3.90),
-(68, 248, NULL, 4.70, 4.20),
-(69, 249, NULL, 4.90, 4.20),
-(70, 250, NULL, 4.30, 3.60),
-(71, 251, NULL, 4.00, 2.60),
-(72, 241, NULL, 4.50, 3.50),
-(73, 241, NULL, 4.40, 2.90),
-(74, 254, NULL, 4.40, 2.90),
-(75, 255, NULL, 4.00, 2.20),
-(76, 256, NULL, 4.90, 2.90),
-(77, 257, NULL, 5.00, 2.30),
-(78, 258, NULL, 4.60, 3.70),
-(79, 259, NULL, 4.70, 4.30),
-(80, 260, NULL, 5.00, 3.60),
-(81, 261, NULL, 4.80, 4.40),
-(82, 262, NULL, 4.20, 3.10),
-(83, 263, NULL, 4.20, 2.60),
-(84, 264, NULL, 4.80, 3.10),
-(85, 265, NULL, 4.70, 4.00),
-(86, 266, NULL, 5.00, 4.40),
-(87, 267, NULL, 4.40, 4.60),
-(88, 263, NULL, 4.30, 2.00),
-(89, 263, NULL, 4.30, 2.60),
-(90, 263, NULL, 4.40, 3.20);
-
---
--- Disparadores `promedio_evaluacion_docente_por_curso`
---
-DELIMITER $$
-CREATE TRIGGER `trg_promedio_eval_docente` BEFORE INSERT ON `promedio_evaluacion_docente_por_curso` FOR EACH ROW BEGIN
-    IF NEW.promedio_ev_docente > 5 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El promedio de evaluación del docente no puede ser mayor que 5.';
-    END IF;
-END
-$$
-DELIMITER ;
+(46, 272, 57, 4.00, 3.80),
+(47, 273, 58, 4.70, 2.90),
+(48, 274, 59, 5.00, 3.90),
+(49, 275, 60, 5.00, 3.60),
+(50, 276, 61, 4.80, 4.60),
+(51, 277, 62, 4.40, 3.20),
+(52, 278, 63, 4.60, 3.80),
+(53, 279, 63, 4.00, 2.80),
+(54, 280, NULL, 5.00, 3.90),
+(55, 281, NULL, 5.00, 4.20),
+(56, 282, NULL, 4.70, 3.60),
+(57, 283, NULL, 4.40, 3.30),
+(58, 284, NULL, 4.80, 4.00),
+(59, 285, NULL, 4.20, 3.50),
+(60, 286, NULL, 4.30, 3.10),
+(61, 287, NULL, 3.70, 3.00),
+(62, 288, NULL, 4.30, 3.70),
+(63, 289, NULL, 5.00, 4.70),
+(64, 290, NULL, 4.60, 3.80),
+(65, 291, NULL, 4.70, 3.40),
+(66, 292, NULL, 4.50, 3.20),
+(67, 293, NULL, 4.00, 3.90),
+(68, 294, NULL, 4.70, 4.20),
+(69, 295, NULL, 4.90, 4.20),
+(70, 296, NULL, 4.30, 3.60),
+(71, 297, NULL, 4.00, 2.60),
+(72, 287, NULL, 4.50, 3.50),
+(73, 287, NULL, 4.40, 2.90),
+(74, 300, NULL, 4.40, 2.90),
+(75, 301, NULL, 4.00, 2.20),
+(76, 302, NULL, 4.90, 2.90),
+(77, 303, NULL, 5.00, 2.30),
+(78, 304, NULL, 4.60, 3.70),
+(79, 305, NULL, 4.70, 4.30),
+(80, 306, NULL, 5.00, 3.60),
+(81, 307, NULL, 4.80, 4.40),
+(82, 308, NULL, 4.20, 3.10),
+(83, 309, NULL, 4.20, 2.60),
+(84, 310, NULL, 4.80, 3.10),
+(85, 311, NULL, 4.70, 4.00),
+(86, 312, NULL, 5.00, 4.40),
+(87, 313, NULL, 4.40, 4.60),
+(88, 309, NULL, 4.30, 2.00),
+(89, 309, NULL, 4.30, 2.60),
+(90, 309, NULL, 4.40, 3.20);
 
 -- --------------------------------------------------------
 
@@ -1690,6 +1508,26 @@ INSERT INTO `rol` (`id_rol`, `nombre`, `descripcion`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `sanciones`
+--
+
+CREATE TABLE `sanciones` (
+  `id_sancion` int(11) NOT NULL,
+  `id_docente` int(11) NOT NULL,
+  `numero_resolucion` varchar(50) NOT NULL,
+  `fecha_emision` date NOT NULL,
+  `tipo_sancion` enum('leve','grave','retiro') NOT NULL,
+  `antecedentes` text NOT NULL,
+  `fundamentos` text NOT NULL,
+  `resolucion` text NOT NULL,
+  `firma_path` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `usuarios`
 --
 
@@ -1710,46 +1548,17 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `id_rol`, `activo`, `nombre`, `correo`, `contrasena`, `tipo_usuario`, `apellido`, `identificacion`) VALUES
-(1, 1, 1, 'Juan Pérez', 'juanperez@gmail.com', '123', 'coordinador', 'Guitierres', 10583850),
-(2, 2, 1, 'Ana Gómez', 'anagomez@gmail.com', '1234', 'docente', 'Fracisco', 10458305),
-(3, 2, 1, 'Carlos ruiz', 'carlosruiz@gmail.com', '123', 'docente', 'sdfs', 10304059),
-(4, 2, 1, 'Laura Díaz', 'lauradiaz@gmail.com', '1234', 'docente', 'dfg', 10787593),
-(5, 2, 1, 'Pedro Torres', 'pedro@gmail.com', '1243', 'docente', 'sdf', 10674849),
-(6, 2, 1, 'Alejo', 'alejo@gmail.com', '1233', 'docente', 'xcv', 1934943),
-(7, 2, 1, 'Cristian', 'cristian@gmail.com\r\n', '1234', 'docente', 'fgj', 1093290);
-
---
--- Disparadores `usuarios`
---
-DELIMITER $$
-CREATE TRIGGER `trg_usuario_cambio_rol` BEFORE UPDATE ON `usuarios` FOR EACH ROW BEGIN
-    IF OLD.activo = TRUE AND NEW.id_rol != OLD.id_rol THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'No se puede cambiar el rol de un usuario activo.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_usuario_correo_unico` BEFORE INSERT ON `usuarios` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Usuarios WHERE correo = NEW.correo
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El correo ya está en uso.';
-    END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `trg_usuario_validar_contrasena` BEFORE INSERT ON `usuarios` FOR EACH ROW BEGIN
-    IF CHAR_LENGTH(NEW.contrasena) < 8 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'La contraseña debe tener al menos 8 caracteres.';
-    END IF;
-END
-$$
-DELIMITER ;
+(1, 1, 1, 'Juan Pérez', 'juanperez@gmail.com', '123', 'docente', 'sadf', 0),
+(2, 2, 1, 'Ana Gómez', 'anagomez@gmail.com', '1234', 'docente', 'dfg', 0),
+(3, 2, 1, 'Carlos ruiz', 'carlosruiz@gmail.com', '123', 'docente', 'sdfs', 0),
+(4, 2, 1, 'Laura Díaz', 'lauradiaz@gmail.com', '1234', 'docente', 'dfg', 0),
+(5, 2, 1, 'Pedro Torres', 'pedro@gmail.com', '1243', 'docente', 'sdf', 0),
+(6, 2, 1, 'Alejo', 'alejo@gmail.com', '1233', 'docente', 'xcv', 0),
+(7, 3, 1, 'Cristian', 'cristian@gmail.com\r\n', '1234', 'docente', 'fgj', 0),
+(8, 2, 1, 'Alejandor', 'alejoms04@gmail.com', '12345', 'docente', '', 0),
+(9, 3, 1, 'Ana Leidy', 'alejandromartinezsalzar@gmail.com', '1234347', 'docente', 'Salazar Caldas', 0),
+(10, 3, 1, 'Ana Leidy', 'alejandromartine554zsalzar@gmail.com', '4188885', 'docente', 'Salazar Caldas', 0),
+(11, 3, 1, 'Ana Leidy', 'alejandromartine5544555zsalzar@gmail.com', '4188885', 'docente', 'Salazar Caldas', 0);
 
 --
 -- Índices para tablas volcadas
@@ -1876,14 +1685,6 @@ ALTER TABLE `proceso_sancion`
   ADD KEY `id_promedio` (`id_promedio`);
 
 --
--- Indices de la tabla `proceso_sancion_retiro`
---
-ALTER TABLE `proceso_sancion_retiro`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `numero_resolucion` (`numero_resolucion`),
-  ADD KEY `fk_docente` (`id_docente`);
-
---
 -- Indices de la tabla `programas`
 --
 ALTER TABLE `programas`
@@ -1906,6 +1707,14 @@ ALTER TABLE `rol`
   ADD PRIMARY KEY (`id_rol`);
 
 --
+-- Indices de la tabla `sanciones`
+--
+ALTER TABLE `sanciones`
+  ADD PRIMARY KEY (`id_sancion`),
+  ADD UNIQUE KEY `numero_resolucion` (`numero_resolucion`),
+  ADD KEY `id_docente` (`id_docente`);
+
+--
 -- Indices de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
@@ -1921,7 +1730,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `acta_compromiso`
 --
 ALTER TABLE `acta_compromiso`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `alertas_bajo_desempeno`
@@ -1945,31 +1754,31 @@ ALTER TABLE `coordinacion`
 -- AUTO_INCREMENT de la tabla `cursos`
 --
 ALTER TABLE `cursos`
-  MODIFY `id_curso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=271;
+  MODIFY `id_curso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=317;
 
 --
 -- AUTO_INCREMENT de la tabla `docente`
 --
 ALTER TABLE `docente`
-  MODIFY `id_docente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id_docente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
 
 --
 -- AUTO_INCREMENT de la tabla `docentes_no_autoevaluados`
 --
 ALTER TABLE `docentes_no_autoevaluados`
-  MODIFY `id_docente_No_Evaluado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_docente_No_Evaluado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `estudiantes_no_evaluaron`
 --
 ALTER TABLE `estudiantes_no_evaluaron`
-  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
+  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT de la tabla `evaluaciones`
 --
 ALTER TABLE `evaluaciones`
-  MODIFY `id_evaluacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_evaluacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `facultad`
@@ -1987,7 +1796,7 @@ ALTER TABLE `notas_plan_mejora`
 -- AUTO_INCREMENT de la tabla `periodos_academicos`
 --
 ALTER TABLE `periodos_academicos`
-  MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=229;
+  MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=248;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
@@ -2008,16 +1817,10 @@ ALTER TABLE `proceso_sancion`
   MODIFY `id_proceso` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `proceso_sancion_retiro`
---
-ALTER TABLE `proceso_sancion_retiro`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `programas`
 --
 ALTER TABLE `programas`
-  MODIFY `id_programa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id_programa` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT de la tabla `promedio_evaluacion_docente_por_curso`
@@ -2032,10 +1835,16 @@ ALTER TABLE `rol`
   MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT de la tabla `sanciones`
+--
+ALTER TABLE `sanciones`
+  MODIFY `id_sancion` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Restricciones para tablas volcadas
@@ -2123,12 +1932,6 @@ ALTER TABLE `proceso_sancion`
   ADD CONSTRAINT `proceso_sancion_ibfk_3` FOREIGN KEY (`id_promedio`) REFERENCES `promedio_evaluacion_docente_por_curso` (`id_promedio`);
 
 --
--- Filtros para la tabla `proceso_sancion_retiro`
---
-ALTER TABLE `proceso_sancion_retiro`
-  ADD CONSTRAINT `fk_docente` FOREIGN KEY (`id_docente`) REFERENCES `docente` (`id_docente`) ON DELETE CASCADE;
-
---
 -- Filtros para la tabla `programas`
 --
 ALTER TABLE `programas`
@@ -2141,6 +1944,12 @@ ALTER TABLE `programas`
 ALTER TABLE `promedio_evaluacion_docente_por_curso`
   ADD CONSTRAINT `promedio_evaluacion_docente_por_curso_ibfk_1` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`),
   ADD CONSTRAINT `promedio_evaluacion_docente_por_curso_ibfk_2` FOREIGN KEY (`id_docente`) REFERENCES `docente` (`id_docente`);
+
+--
+-- Filtros para la tabla `sanciones`
+--
+ALTER TABLE `sanciones`
+  ADD CONSTRAINT `sanciones_ibfk_1` FOREIGN KEY (`id_docente`) REFERENCES `docente` (`id_docente`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `usuarios`
