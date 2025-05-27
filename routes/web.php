@@ -183,3 +183,8 @@ Route::prefix('decano')->name('decano.')->group(function () {
     // Route::post('/sanciones/enviar-ajax', [DecanoCordinadorController::class, 'enviarResolucionAjax'])
     //      ->name('enviar_resolucion_ajax');
 });
+
+//Login
+Route::post('/login', [loginController::class, 'validation'])->name('login.process');
+
+Route::get('/loginold', [loginController::class, 'Login'])->name('user.login');
