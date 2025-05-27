@@ -40,14 +40,12 @@
                     <img src="{{ asset('images/escudo.png') }}" alt="navbar brand" class="navbar-brand" height="42"
                         style="max-width: 100%; object-fit: contain;">
                 </a>
-                <button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse"
-                    data-target="collapse" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler sidenav-toggler ml-auto d-block d-lg-none" type="button" aria-label="Toggle navigation" id="sidebarMobileToggler">
                     <span class="navbar-toggler-icon">
                         <i class="icon-menu"></i>
                     </span>
                 </button>
-                <button class="topbar-toggler more"><i class="icon-options-vertical"></i></button>
-                <div class="nav-toggle">
+                <div class="nav-toggle d-none d-lg-block">
                     <button class="btn btn-toggle toggle-sidebar">
                         <i class="icon-menu"></i>
                     </button>
