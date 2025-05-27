@@ -1,0 +1,573 @@
+% Manual de Usuario - Sistema de Evaluación Docente
+% Basado en la norma IEEE 1063-2001
+
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
+
+
+% Configuración del documento
+\geometry{margin=2.5cm}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+}
+
+% Configuración de encabezados y pies de página
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{Sistema de Evaluación Docente}
+\fancyhead[R]{IEEE 1063}
+\fancyfoot[C]{\thepage}
+
+% Configuración para títulos
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+% Documento
+\begin{document}
+
+% Portada mejorada conforme a IEEE 1063-2001
+\begin{titlepage}
+\begin{center}
+\vspace*{2cm}
+{\Huge \textbf{Manual de Usuario}}\\[0.5cm]
+{\LARGE \textbf{Sistema de Evaluación Docente}}\\[0.5cm]
+{\large Conforme a la norma IEEE 1063-2001}\\[2cm]
+\includegraphics[width=0.45\textwidth]{images/Logo Uniautonoma.png}\\[1cm]
+\textbf{Versión del Sistema:} 1.0\\
+\textbf{Versión del Documento:} 1.0\\
+\textbf{Fecha de Emisión:} \today\\[2.5cm]
+\textbf{Desarrollado por:}\\[0.3cm]
+Thomas Montoya Magon\\
+Juan Daniel Bravo\\
+Alejandro Martínez Salazar\\
+Daniel Rivas Agredo\\
+Luisa Julieth Joaqui\\[2cm]
+\textbf{Contacto:} soporte@evaluaciondocente.edu.co\\
+\vfill
+\textit{Este documento proporciona instrucciones para el uso adecuado del sistema y está dirigido a todos los roles autorizados.}\\
+\end{center}
+\end{titlepage}
+
+%-------------------------------
+% Historial de Revisiones
+%-------------------------------
+\clearpage
+\section*{Historial de Revisiones}
+\addcontentsline{toc}{section}{Historial de Revisiones}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Versión} & \textbf{Fecha} & \textbf{Descripción} \\
+\midrule
+1.0 & \today & Creación inicial del manual conforme a IEEE 1063-2001 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%-------------------------------
+% Índices
+%-------------------------------
+\clearpage
+\tableofcontents
+\clearpage
+\listoffigures
+\addcontentsline{toc}{section}{Lista de Figuras}
+\clearpage
+\listoftables
+\addcontentsline{toc}{section}{Lista de Tablas}
+\clearpage
+
+% 1. Introducción
+\section{Introducción}\label{sec:introduccion}
+\subsection{Propósito}
+Este manual de usuario tiene como propósito proporcionar una guía clara y concisa sobre el uso del Sistema de Evaluación Docente, diseñado para optimizar el proceso de evaluación de docentes en instituciones educativas. El sistema permite la evaluación desde tres perspectivas diferentes: estudiantes, administrativos (decanos/coordinadores) y la autoevaluación del propio docente.
+
+\subsection{Alcance}
+Este documento está dirigido a todos los usuarios del sistema, incluyendo administradores, decanos, coordinadores y docentes. Proporciona instrucciones detalladas sobre cómo utilizar las diversas funcionalidades disponibles según el rol de cada usuario.
+
+\subsection{Definiciones y Acrónimos}
+\begin{table}[H]
+  \centering
+  \caption{Definiciones y Acrónimos}\label{tab:acronimos}
+  \begin{tabularx}{\textwidth}{>{\bfseries}lX}
+    \toprule
+    Término & Definición \\
+    \midrule
+    SED & Sistema de Evaluación Docente \\
+    Acta de Compromiso & Documento formal que registra los compromisos de mejora adquiridos por un docente \\
+    Proceso de Sanción & Procedimiento disciplinario iniciado cuando un docente no cumple con los compromisos establecidos \\
+    Dashboard & Panel de control personalizado con información relevante según el rol del usuario \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% 2. Uso del documento
+\section{Uso del Documento}\label{sec:uso-documento}
+Este manual está organizado según la norma IEEE 1063 y se estructura en secciones que siguen el flujo lógico de utilización del sistema. Cada sección incluye descripciones detalladas e instrucciones paso a paso. Se recomienda leer primero la sección correspondiente a su rol en el sistema y luego explorar las funcionalidades específicas que necesite utilizar.
+
+% 3. Conceptos de operación
+\section{Conceptos de Operación}\label{sec:conceptos}
+\subsection{Descripción General del Sistema}
+El Sistema de Evaluación Docente es una aplicación web desarrollada en Laravel que permite:
+\begin{itemize}
+    \item Realizar evaluaciones de docentes por parte de estudiantes de forma anónima
+    \item Gestionar evaluaciones administrativas por parte de coordinadores y decanos
+    \item Facilitar la autoevaluación de los docentes
+    \item Generar reportes, estadísticas y actas de compromiso
+    \item Emitir alertas por bajo rendimiento
+    \item Gestionar procesos de sanción cuando sea necesario
+\end{itemize}
+
+\subsection{Roles de Usuario}
+El sistema contempla tres roles principales:
+\begin{itemize}
+    \item \textbf{Administrador:} Gestiona períodos de evaluación, roles y genera reportes globales.
+    \item \textbf{Decano/Coordinador:} Gestiona actas de compromiso, monitorea alertas, realiza seguimiento a planes de mejora y gestiona procesos de sanción.
+    \item \textbf{Docente:} Consulta resultados de evaluación, visualiza estadísticas personales y configura sus datos.
+\end{itemize}
+
+\subsection{Arquitectura del Sistema}
+La aplicación sigue la arquitectura Modelo-Vista-Controlador (MVC) de Laravel, utilizando:
+\begin{itemize}
+    \item Frontend con Blade como motor de plantillas
+    \item Backend en PHP con Laravel
+    \item Base de datos MySQL
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/diagrama_mvc.png}
+  \caption{Esquema MVC del sistema}
+  \label{fig:mvc}
+\end{figure}
+
+
+% 4. Procedimientos
+\section{Procedimientos}\label{sec:procedimientos}
+\subsection{Acceso al Sistema}
+\subsubsection{Inicio de Sesión}
+\begin{enumerate}
+    \item Abra su navegador web y acceda a la URL del sistema.
+    \item En la página de inicio, encontrará un formulario de login.
+    \item Ingrese su nombre de usuario y contraseña.
+    \item Seleccione su rol (Administrador, Decano/Coordinador o Docente).
+    \item Haga clic en el botón "Iniciar Sesión".
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{images/LOGIN.png}
+  \caption{Pantalla de inicio de sesión}
+  \label{fig:login}
+\end{figure}
+
+
+\subsubsection{Cerrar Sesión}
+\begin{enumerate}
+    \item Haga clic en su nombre de usuario ubicado en la esquina superior derecha.
+    \item Seleccione la opción "Cerrar Sesión".
+\end{enumerate}
+
+\subsection{Funcionalidades para Administradores}
+\subsubsection{Acceso al Panel de Administrador}
+\begin{enumerate}
+    \item Inicie sesión con credenciales de administrador.
+    \item Será redirigido automáticamente al panel de administrador.
+    \item Alternativamente, puede acceder mediante la ruta: \texttt{/Admin}
+\end{enumerate}
+
+\subsubsection{Gestión de Períodos de Evaluación}
+\begin{enumerate}
+    \item En el panel de administrador, haga clic en "Períodos de Evaluación".
+    \item Para crear un nuevo período, complete el formulario con:
+    \begin{itemize}
+        \item Nombre del período
+        \item Fecha de inicio
+        \item Fecha de finalización
+        \item Estado (Activo/Inactivo)
+    \end{itemize}
+    \item Haga clic en "Guardar" para crear el período.
+    \item Para editar un período existente, haga clic en el ícono de edición junto al período deseado.
+    \item Para eliminar un período, haga clic en el ícono de eliminación.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/Periodo.png}
+  \caption{Pantalla de gestión de períodos (Administrador)}
+  \label{fig:admin_periodos}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/Periodo.png}
+  \caption{Pantalla de gestión de períodos (Administrador)}
+  \label{fig:admin_periodos}
+\end{figure}
+
+\subsubsection{Administración de Roles y Permisos}
+\begin{enumerate}
+    \item En el panel de administrador, haga clic en "Roles y Permisos".
+    \item Para asignar un rol, seleccione el usuario y el rol correspondiente.
+    \item Para modificar permisos, seleccione el rol y marque o desmarque los permisos deseados.
+    \item Haga clic en "Guardar Cambios" para aplicar las modificaciones.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/Roles_y_Permisos.png}
+  \caption{Pantalla de Administracion de Roles y Permisos (Administrador)}
+  \label{fig:admin_periodos}
+\end{figure}
+
+\subsubsection{Generación de Reportes Globales}
+\begin{enumerate}
+    \item En el panel de administrador, haga clic en "Reportes".
+    \item Seleccione el tipo de reporte que desea generar.
+    \item Aplique filtros si es necesario (período, facultad, programa).
+    \item Haga clic en "Generar Reporte".
+    \item Utilice las opciones para exportar el reporte en formato PDF o Excel.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/Reportes_y_Estadisticas.png}
+  \caption{Pantalla de Generacion de Reportes y Estadisticas(Administrador)}
+  \label{fig:admin_periodos}
+\end{figure}
+
+\subsection{Funcionalidades para Decanos/Coordinadores}
+\subsubsection{Acceso al Panel de Decano/Coordinador}
+\begin{enumerate}
+    \item Inicie sesión con credenciales de decano o coordinador.
+    \item Será redirigido automáticamente al panel de decano.
+    \item Alternativamente, puede acceder mediante la ruta: \texttt{/decano}
+\end{enumerate}
+
+\subsubsection{Gestión de Actas de Compromiso}
+\begin{enumerate}
+    \item En el panel de decano, haga clic en "Actas de Compromiso".
+    \item Para crear una nueva acta, haga clic en "Nueva Acta".
+    \item Complete el formulario con:
+    \begin{itemize}
+        \item Datos del docente
+        \item Motivo del acta
+        \item Compromisos establecidos
+        \item Fecha de seguimiento
+    \end{itemize}
+    \item Haga clic en "Guardar Acta".
+    \item Para editar un acta existente, haga clic en "Editar" junto al acta deseada.
+    \item Para eliminar un acta, haga clic en "Eliminar".
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/decano_actas.png}
+  \caption{Gestión de actas de compromiso (Decano/Coordinador)}
+  \label{fig:decano_actas}
+\end{figure}
+
+
+\subsubsection{Monitoreo de Alertas de Bajo Desempeño}
+\begin{enumerate}
+    \item En el panel de decano, haga clic en "Alertas de Bajo Desempeño".
+    \item Visualizará un listado de docentes que han obtenido calificaciones por debajo del umbral establecido.
+    \item Para ver detalles de un docente específico, haga clic en "Ver Detalles".
+    \item Puede filtrar las alertas por período, programa o nivel de gravedad.
+\end{enumerate}
+
+\subsubsection{Seguimiento a Planes de Mejora}
+\begin{enumerate}
+    \item En el panel de decano, haga clic en "Seguimiento Plan de Mejora".
+    \item Seleccione el acta de compromiso que desea revisar.
+    \item Registre el avance del docente en cada compromiso establecido.
+    \item Actualice el estado general del plan (En progreso, Completado, No cumplido).
+    \item Haga clic en "Guardar Seguimiento".
+\end{enumerate}
+
+\subsubsection{Gestión de Procesos de Sanción}
+\begin{enumerate}
+    \item En el panel de decano, haga clic en "Proceso Sanción/Retiro".
+    \item Para iniciar un nuevo proceso, haga clic en "Nuevo Proceso".
+    \item Complete el formulario con:
+    \begin{itemize}
+        \item Datos del docente
+        \item Tipo de sanción
+        \item Motivo
+        \item Evidencias
+    \end{itemize}
+    \item Haga clic en "Iniciar Proceso".
+    \item Para actualizar un proceso existente, haga clic en "Actualizar" junto al proceso deseado.
+    \item Puede filtrar los procesos por tipo de sanción o por calificación.
+\end{enumerate}
+
+\subsection{Funcionalidades para Docentes}
+\subsubsection{Acceso al Panel de Docente}
+\begin{enumerate}
+    \item Inicie sesión con credenciales de docente.
+    \item Será redirigido automáticamente al panel de docente.
+    \item Alternativamente, puede acceder mediante la ruta: \texttt{/docente}
+\end{enumerate}
+
+\subsubsection{Consulta de Resultados de Evaluación}
+\begin{enumerate}
+    \item En el panel de docente, haga clic en "Resultados".
+    \item Seleccione el período de evaluación que desea consultar.
+    \item Visualizará los resultados desglosados por tipo de evaluación:
+    \begin{itemize}
+        \item Evaluación por estudiantes
+        \item Evaluación administrativa
+        \item Autoevaluación
+    \end{itemize}
+    \item Para ver detalles específicos, haga clic en "Ver Detalles" en cada sección.
+\end{enumerate}
+
+\subsubsection{Visualización de Estadísticas Personales}
+\begin{enumerate}
+    \item En el panel de docente, podrá ver gráficos estadísticos de su desempeño.
+    \item Para comparar resultados entre diferentes períodos, seleccione los períodos deseados.
+    \item Puede filtrar las estadísticas por tipo de evaluación o criterio específico.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{images/docente_estadisticas.png}
+  \caption{Gráficos de desempeño personal (Docente)}
+  \label{fig:docente_stats}
+\end{figure}
+
+
+\subsubsection{Configuración de Datos Personales}
+\begin{enumerate}
+    \item En el panel de docente, haga clic en "Configuración".
+    \item Actualice sus datos personales según sea necesario.
+    \item Para cambiar su contraseña, haga clic en "Cambiar Contraseña".
+    \item Complete el formulario con su contraseña actual y la nueva contraseña.
+    \item Haga clic en "Guardar Cambios".
+\end{enumerate}
+
+% 5. Información sobre comandos de software
+\section{Mensajes del Sistema}\label{sec:mensajes}
+\subsection{Mensajes de Error}
+\begin{table}[H]
+  \centering
+  \caption{Mensajes de Error}\label{tab:mensajes-error}
+  \begin{tabularx}{\textwidth}{>{\bfseries}lX}
+    \toprule
+    Mensaje & Descripción y Solución \\
+    \midrule
+    "Credenciales incorrectas" & Las credenciales proporcionadas no son válidas. Verifique su nombre de usuario y contraseña e intente nuevamente. \\
+    "Acceso denegado" & No tiene permisos para acceder a la funcionalidad solicitada. Contacte al administrador. \\
+    "Error de conexión a la base de datos" & Problema de conectividad con la base de datos. Intente nuevamente más tarde o contacte al soporte técnico. \\
+    "Período no disponible" & El período seleccionado no está activo o ha expirado. Seleccione un período válido. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Mensajes de Éxito}
+\begin{table}[H]
+  \centering
+  \caption{Mensajes de Éxito}\label{tab:mensajes-exito}
+  \begin{tabularx}{\textwidth}{>{\bfseries}lX}
+    \toprule
+    Mensaje & Descripción \\
+    \midrule
+    "Evaluación completada exitosamente" & La evaluación ha sido registrada correctamente en el sistema. \\
+    "Acta de compromiso guardada" & El acta de compromiso ha sido creada y almacenada correctamente. \\
+    "Proceso de sanción iniciado" & El proceso de sanción ha sido creado y registrado en el sistema. \\
+    "Cambios guardados" & Los cambios realizados han sido guardados correctamente. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% 6. Procedimientos de error
+\section{Solución de Problemas}\label{sec:solucion-problemas}
+\subsection{Problemas Comunes y Soluciones}
+\begin{tabularx}{\textwidth}{>{\bfseries}lX}
+\toprule
+Problema & Solución \\
+\midrule
+No puede acceder al sistema & Verifique su conexión a internet. Confirme que está utilizando las credenciales correctas. Si el problema persiste, contacte al administrador. \\
+Los gráficos no se cargan & Actualice la página. Verifique que JavaScript esté habilitado en su navegador. Intente con otro navegador compatible. \\
+Error al generar reportes & Verifique que haya seleccionado todos los filtros requeridos. Si el problema persiste, contacte al soporte técnico. \\
+No visualiza todas las opciones en su panel & Verifique que tenga los permisos adecuados para su rol. Contacte al administrador para revisar sus permisos. \\
+\bottomrule
+\end{tabularx}
+
+\\begin{figure}[H]
+  \centering
+  % Redimensiona todo el diagrama al ancho del texto
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        node distance=8mm and 15mm,
+        decision/.style={diamond, draw, align=center, inner sep=1pt, text width=3cm},
+        block/.style={rectangle, draw, rounded corners, align=center, inner sep=3pt, text width=3cm},
+        arrow/.style={-{Latex[length=2.5mm]}, thick}
+      ]
+      % Nodos
+      \node[block] (start) {¿Qué tipo de problema tienes?};
+      \node[decision, below=of start] (tipo) {1) No accede \\ 2) Gráficos \\ 3) Reportes \\ 4) Opciones};
+
+      % Rama 1
+      \node[decision, below left=of tipo] (internet) {¿Conexión a Internet?};
+      \node[block, below=of internet] (revisa) {Verifica tu conexión};
+      \node[decision, below=of revisa] (cred) {¿Credenciales correctas?};
+      \node[block, below left=of cred] (errorcred) {Revisa credenciales};
+      \node[block, below right=of cred] (loginok) {Acceso exitoso};
+
+      % Rama 2
+      \node[decision, right=20mm of tipo] (js) {¿JavaScript habilitado?};
+      \node[block, below=of js] (habilita) {Habilita JS y recarga};
+      \node[block, below left=of habilita] (otro) {Prueba otro navegador};
+      \node[block, below right=of habilita] (grafok) {Gráficos cargan};
+
+      % Rama 3
+      \node[decision, below right=of tipo] (filtros) {¿Filtros completos?};
+      \node[block, below=of filtros] (completa) {Selecciona todos los filtros};
+      \node[block, below left=of completa] (reintento) {Reintenta reporte};
+      \node[block, below right=of completa] (soporte) {Contacta soporte};
+
+      % Rama 4
+      \node[decision, right=20mm of js] (perm) {¿Tienes permisos?};
+      \node[block, below=of perm] (revisaP) {Revisa roles y permisos};
+      \node[block, below left=of revisaP] (admin) {Contacta administrador};
+      \node[block, below right=of revisaP] (okops) {Opciones disponibles};
+
+      % Conexiones
+      \draw[arrow] (start) -- (tipo);
+      \draw[arrow] (tipo) -- node[left] {1} (internet);
+      \draw[arrow] (internet) -- (revisa);
+      \draw[arrow] (revisa) -- (cred);
+      \draw[arrow] (cred) -- node[left] {No} (errorcred);
+      \draw[arrow] (cred) -- node[right] {Sí} (loginok);
+
+      \draw[arrow] (tipo) -- node[above] {2} (js);
+      \draw[arrow] (js) -- (habilita);
+      \draw[arrow] (habilita) -- node[below left] {No} (otro);
+      \draw[arrow] (habilita) -- node[below right] {Sí} (grafok);
+
+      \draw[arrow] (tipo) -- node[right] {3} (filtros);
+      \draw[arrow] (filtros) -- (completa);
+      \draw[arrow] (completa) -- node[left] {Intentar} (reintento);
+      \draw[arrow] (completa) -- node[right] {Sí} (soporte);
+
+      \draw[arrow] (tipo) ++(1cm,-1.2cm) |- node[above] {4} (perm);
+      \draw[arrow] (perm) -- (revisaP);
+      \draw[arrow] (revisaP) -- node[left] {No} (admin);
+      \draw[arrow] (revisaP) -- node[right] {Sí} (okops);
+    \end{tikzpicture}%
+  }
+  \caption{Árbol de decisión para solución de problemas comunes}
+  \label{fig:flowchart}
+\end{figure}
+
+
+
+\subsection{Contacto de Soporte Técnico}
+Si experimenta problemas que no puede resolver utilizando este manual, contacte al soporte técnico:
+
+\begin{itemize}
+    \item Correo electrónico: thomas.montoya.m@uniautonoma.edu.co
+    \item Teléfono: 312-6081990
+    \item Horario de atención: Lunes a Viernes, 9:00 AM - 6:00 PM
+\end{itemize}
+
+% 7. Glosario
+\section{Glosario}\label{sec:glosario}
+\begin{table}[H]
+  \centering
+  \caption{Glosario de Términos}\label{tab:glosario}
+  \begin{tabularx}{\textwidth}{>{\bfseries}lX}
+    \toprule
+    Término & Definición \\
+    \midrule
+    Acta de Compromiso & Documento formal que registra los compromisos adquiridos por un docente para mejorar su desempeño. \\
+    Dashboard & Panel de control personalizado que muestra información relevante según el rol del usuario. \\
+    Evaluación Administrativa & Evaluación realizada por decanos o coordinadores sobre el desempeño de los docentes. \\
+    Período de Evaluación & Intervalo de tiempo definido durante el cual se realizan las evaluaciones docentes. \\
+    Plan de Mejora & Conjunto de acciones específicas que debe implementar un docente para mejorar su desempeño. \\
+    Proceso de Sanción & Procedimiento disciplinario iniciado cuando un docente no cumple con los compromisos establecidos. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% 8. Notas
+\section{Notas}\label{sec:notas}
+\subsection{Recomendaciones de Uso}
+\begin{itemize}
+    \item Utilice navegadores actualizados como Chrome, Firefox, Safari o Edge para una mejor experiencia.
+    \item Cambie su contraseña periódicamente para mantener la seguridad de su cuenta.
+    \item Cierre sesión después de utilizar el sistema, especialmente en equipos compartidos.
+    \item Verifique que los datos ingresados sean correctos antes de guardar cambios.
+    \item Consulte regularmente las actualizaciones del sistema y los nuevos períodos de evaluación.
+\end{itemize}
+
+
+
+\subsection{Limitaciones Conocidas}
+\begin{itemize}
+    \item El sistema podría experimentar lentitud durante períodos de alta demanda (finales de semestre).
+    \item Algunas funciones de exportación de reportes podrían no ser compatibles con versiones antiguas de Microsoft Excel.
+    \item La visualización óptima está diseñada para pantallas con resolución mínima de 1024x768 píxeles.
+\end{itemize}
+
+% 9. Índice
+\clearpage
+\begin{thebibliography}{1}
+  \addcontentsline{toc}{section}{Referencias}
+  \bibitem{IEEE1063}
+    IEEE Std 1063-2001, \textit{IEEE Standard for Software User Documentation}, IEEE, 2001.
+\end{thebibliography}
+
+% 10. Índice Alfabético
+\clearpage
+\section*{Índice Alfabético}
+\addcontentsline{toc}{section}{Índice Alfabético}
+\begin{tabularx}{\textwidth}{lX}
+  \toprule
+  \textbf{A} & \\
+  Actas de Compromiso & \pageref{sec:glosario} \\
+  Alertas de Bajo Desempeño & \pageref{sec:conceptos} \\
+  Autoevaluación & \pageref{sec:procedimientos} \\
+  \midrule
+  \textbf{C} & \\
+  Configuración & \pageref{sec:procedimientos} \\
+  Credenciales & \pageref{sec:mensajes} \\
+  \midrule
+  \textbf{E} & \\
+  Estadísticas & \pageref{sec:conceptos} \\
+  Evaluación & \pageref{sec:introduccion} \\
+  \midrule
+  \textbf{P} & \\
+  Períodos de Evaluación & \pageref{sec:procedimientos} \\
+  Procesos de Sanción & \pageref{sec:procedimientos} \\
+  \midrule
+  \textbf{R} & \\
+  Reportes & \pageref{sec:procedimientos} \\
+  Roles & \pageref{sec:conceptos} \\
+  \bottomrule
+  
+\end{tabularx}
+
+\end{document}
