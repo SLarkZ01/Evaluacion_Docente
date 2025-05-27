@@ -128,7 +128,7 @@
                             <ul class="nav">
                                 <li class="nav-item">
                                     <a class="nav-link" href="https://www.uniautonoma.edu.co">
-                                        Pepemarco carreando
+                                        Uniautonoma
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -138,15 +138,14 @@
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link"
-                                        href="https://github.com/SLarkZ01/Frontend_backend_laravel_blade_evaluacion_docente">
-                                        Repositorio
+                                        href="https://github.com/SLarkZ01/Evaluacion_Docente">
+                                        Repositorio del proyecto
                                     </a>
                                 </li>
                             </ul>
                         </nav>
                         <div class="copyright ml-auto">
-                            © Derchos reservados por los integrantes del proyecto 👨‍💻. la <a
-                                href="https://www.uniautonoma.edu.co">Uniautonoma</a>
+                            © Universidad Autónoma del Cauca. Todos los derechos reservados.
                         </div>
                     </div>
                 </footer>

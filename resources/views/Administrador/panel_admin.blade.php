@@ -240,9 +240,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
 <script src="{{ asset('js/LogicaAdministrador/Admin_graficos.js') }}"></script>
 @endsection
