@@ -355,7 +355,7 @@
                     <div class="flex items-center">
                         <a href="{{ url('/') }}"
                             class="text-white font-bold text-xl flex items-center hover:scale-105 transition-transform">
-                            <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma"
+                            <img src="{{ asset('images/logoblanco.png') }}" alt="Logo Uniautónoma"
                                 class="h-12 mr-3">
                             <span class="hidden sm:inline">Sistema de Evaluación Docente</span>
                             <span class="sm:hidden">Evaluación Docente</span>
@@ -709,8 +709,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
                     <div class="flex flex-col sm:flex-row justify-center items-center mb-6 sm:mb-8">
-                        <img src="{{ asset('/images/LogoUniautonoma.png') }}" alt="Logo Uniautónoma"
-                            class="h-10 sm:h-12 mb-4 sm:mb-0 sm:mr-4">
+                        <img src="{{ asset('images/logoblanco.png') }}" alt="Logo Uniautónoma"
+                            class="h-18 sm:h-20 mb-4 sm:mb-0 sm:mr-4">
                         <div class="text-center sm:text-left">
                             <h3 class="text-xl sm:text-2xl font-bold">Corporación Universitaria Autónoma del Cauca</h3>
                             <p class="text-gray-300 text-sm sm:text-base">Sistema de Evaluación Docente</p>

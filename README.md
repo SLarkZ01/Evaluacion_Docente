@@ -1,6 +1,6 @@
 # 🎓 Proyecto Evaluación Docente
 
-Este repositorio contiene la implementación completa de una **aplicación web** para la evaluación del desempeño de los docentes en una institución educativa. El sistema está desarrollado con **Laravel** y **Blade** como motor de plantillas, utilizando **MySQL** como base de datos.
+Este repositorio contiene la implementación **parcial** de una **aplicación web** para la evaluación del desempeño de los docentes en una institución educativa. El sistema está desarrollado con **Laravel** y **Blade** como motor de plantillas, utilizando **MySQL** como base de datos.
 
 ---
 
@@ -147,8 +147,8 @@ Frontend_backend_laravel_blade_evaluacion_docente/
 
 1. **Clonar el repositorio** 📥:
    ```bash
-   git clone https://github.com/SLarkZ01/Frontend_backend_laravel_blade_evaluacion_docente.git
-   cd Frontend_backend_laravel_blade_evaluacion_docente
+   git clone https://github.com/SLarkZ01/Evaluacion_Docente.git
+   cd Evaluacion_Docente
    ```
 
 2. **Instalar dependencias de PHP** 📦:
@@ -179,35 +179,21 @@ Frontend_backend_laravel_blade_evaluacion_docente/
      DB_PASSWORD=tu_contraseña
      ```
 
-6. **Configurar la base de datos** (tienes dos opciones) 💾:
+6. **Configurar la base de datos** 💾:
 
-   **Opción A: Usar migraciones y seeders de Laravel**
+   **Correr las migraciones y seeders de Laravel**
    ```bash
-   php artisan migrate --seed
+   php artisan migrate
+   php artisan migrate:fresh --seed
    ```
+7. **Instalar la base de datos**:
+Despues de haber ejecutado el comando anterior para la creacion de la base de datos.
+Ahora la base de datos 
 
-   **Opción B: Importar directamente el script SQL**
-   - Usando la línea de comandos:
-     ```bash
-     mysql -u [usuario] -p evaluacion_docentes < database/sql/evaluacion_docentes.sql
-     ```
-   - O usando PHPMyAdmin:
-     1. Accede a PHPMyAdmin (generalmente en http://localhost/phpmyadmin)
-     2. Selecciona la base de datos `evaluacion_docentes`
-     3. Ve a la pestaña "Importar"
-     4. Selecciona el archivo `database/sql/evaluacion_docentes.sql`
-     5. Haz clic en "Importar"
 
-7. **Importar procedimientos almacenados** 📊:
+8. **Compilar los estilos para tailwind css** 🎨:
    ```bash
-   mysql -u [usuario] -p evaluacion_docentes < database/sql/procedimientos.sql
-   mysql -u [usuario] -p evaluacion_docentes < database/sql/acta_compromiso_procedures.sql
-   mysql -u [usuario] -p evaluacion_docentes < database/sql/proceso_sancion_procedures.sql
-   ```
-
-8. **Compilar los activos** 🎨:
-   ```bash
-   npm run build
+   npm run dev
    ```
 
 9. **Establecer permisos adecuados** (solo en entornos Unix/Linux) 🔒:
