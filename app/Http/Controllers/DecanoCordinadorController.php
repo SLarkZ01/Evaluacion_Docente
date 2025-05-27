@@ -489,7 +489,7 @@ public function mostrarFormularioSancion()
     {
         // Obtener todos los docentes disponibles para la sanción
         $docentesbusqueda = DB::select('CALL BuscarDocente(?)', ['']);
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            // "" para traer todos
+        // "" para traer todos
 
         return view('decano.formulario_sancion', compact('docentesbusqueda'));
     }
