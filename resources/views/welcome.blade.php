@@ -730,46 +730,30 @@
         </footer>
 
         <script>
-            // Toggle mobile menu con animación mejorada
-            document.getElementById('mobile-menu-button').addEventListener('click', function() {
-                const menu = document.getElementById('mobile-menu');
-                const button = this;
-
-                menu.classList.toggle('hidden');
-
-                // Cambiar icono del botón
-                const icon = button.querySelector('svg path');
-                if (menu.classList.contains('hidden')) {
-                    icon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
-                } else {
-                    icon.setAttribute('d', 'M6 18L18 6M6 6l12 12');
-                }
-            });
-
             // Animación suave para cards al hacer scroll
-            const observeCards = () => {
-                const cards = document.querySelectorAll('.feature-card, .process-step');
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.style.opacity = '1';
-                            entry.target.style.transform = 'translateY(0)';
-                        }
+            document.addEventListener('DOMContentLoaded', function() {
+                const observeCards = () => {
+                    const cards = document.querySelectorAll('.feature-card, .process-step');
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.style.opacity = '1';
+                                entry.target.style.transform = 'translateY(0)';
+                            }
+                        });
+                    }, {
+                        threshold: 0.1
                     });
-                }, {
-                    threshold: 0.1
-                });
 
-                cards.forEach(card => {
-                    card.style.opacity = '0';
-                    card.style.transform = 'translateY(20px)';
-                    card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                    observer.observe(card);
-                });
-            };
-
-            // Ejecutar cuando el DOM esté listo
-            document.addEventListener('DOMContentLoaded', observeCards);
+                    cards.forEach(card => {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(20px)';
+                        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                        observer.observe(card);
+                    });
+                };
+                observeCards();
+            });
         </script>
     </body>
 
