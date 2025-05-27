@@ -237,8 +237,9 @@
                 <!-- Header con logo -->
                 <div class="mb-8 text-center">
                     <div class="flex justify-center items-center mb-4">
-                        {{-- {{-- <img src="{{ asset('images/LogoUniautonoma.png') }}" alt="Universidad Autónoma" class="h-16 w-auto mr-4"> --}}
-                        {{-- <img src="{{ asset('images/logoblanco.png') }}" alt="Escudo" class="h-16 w-auto"> --}}
+                        <a href="{{ route('welcome') }}" class="hover:opacity-80 transition-opacity">
+                            <img src="{{ asset('images/logoblanco.png') }}" alt="Escudo" class="h-16 w-auto">
+                        </a>
                     </div>
                     <h1 class="text-2xl font-bold text-white mb-2 drop-shadow-lg">Sistema de Evaluación Docente</h1>
                     <p class="text-blue-100 drop-shadow">Universidad Autónoma del Cauca</p>
