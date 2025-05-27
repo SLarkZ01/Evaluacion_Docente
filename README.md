@@ -187,10 +187,9 @@ Frontend_backend_laravel_blade_evaluacion_docente/
    php artisan migrate:fresh --seed
    ```
 7. **Instalar la base de datos**:
-Ahora
+Ahora en phpMyAdmin importar la base de datos
 
-public/images/img_install/phpMyAdmin.png
-
+![phpMyAdmin](public/images/img_install/phpMyAdmin.png)
 
 8. **Compilar los estilos para tailwind css** 🎨:
    ```bash
