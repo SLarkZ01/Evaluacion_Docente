@@ -130,6 +130,16 @@ Route::middleware(['auth', 'role:decano'])->prefix('actas-compromisos')->group(f
     Route::get('/ver/{id}', [DecanoCordinadorController::class, 'ver'])->name('actas.compromiso.ver');
 });
 
+// Rutas para actas de compromiso
+Route::prefix('actas-compromiso')->group(function () {
+    Route::get('/', [DecanoCordinadorController::class, 'acta_compromiso'])->name('decano.acta_compromiso');
+    Route::post('/', [DecanoCordinadorController::class, 'store'])->name('decano.acta_compromiso.store');
+    Route::get('/ver/{id}', [DecanoCordinadorController::class, 'ver'])->name('decano.ver_acta');
+    Route::get('/editar/{id}', [DecanoCordinadorController::class, 'edit'])->name('decano.acta_compromiso.edit');
+    Route::put('/{id}', [DecanoCordinadorController::class, 'update'])->name('decano.acta_compromiso.update'); // Cambiado a PUT directo
+    Route::delete('/eliminar/{id}', [DecanoCordinadorController::class, 'destroy'])->name('decano.acta_compromiso.destroy');
+});
+
 // Rutas para administrador - Acceso exclusivo para usuarios con rol 'admin'
 // Incluye configuración del sistema, gestión de períodos y reportes generales
 Route::middleware(['auth', 'role:admin'])->prefix('Admin')->group(function () {
@@ -138,4 +148,38 @@ Route::middleware(['auth', 'role:admin'])->prefix('Admin')->group(function () {
     Route::get('/periodo_evaluacion', [AdminController::class, 'periodo_evaluacion'])->name('admin.periodo_evaluacion');
     Route::get('/reportes', [AdminController::class, 'reportes'])->name('admin.reportes_admin');
     Route::get('/roles_permisos', [AdminController::class, 'roles_permisos'])->name('admin.roles_permisos');
+});
+
+// // Rutas para la funcionalidad de Sanciones
+// Route::middleware(['decano/procesoSancionRetiro'])->prefix('decano')->name('decano.')->group(function () {
+    // Mostrar formulario de sanción
+Route::prefix('decano')->name('decano.')->group(function () {
+    Route::get('/sanciones/formulario', [DecanoCordinadorController::class, 'mostrarFormularioSancion'])->name('formulario_sancion');
+
+    // Guardar sanción
+    Route::post('procesoSancionRetiro/guardar', [DecanoCordinadorController::class, 'guardarSancion'])->name('guardar_sancion');
+
+    // Listar sanciones
+    Route::get('/sanciones', [DecanoCordinadorController::class, 'listarSanciones'])->name('sanciones');
+
+    // Ver detalle de sanción
+    Route::get('/sanciones/{id}', [DecanoCordinadorController::class, 'verDetalleSancion'])->name('ver_sancion');
+
+    // Generar PDF de sanción
+    // Route::get('/sanciones/{id}/pdf', [DecanoCordinadorController::class, 'generarPdfSancion'])->name('generar_pdf_sancion');
+
+    // Enviar resolución al docente
+    Route::post('/sanciones/{id}/enviar', [DecanoCordinadorController::class, 'enviarResoluciones'])->name('enviar_resoluciones');
+
+   Route::post('/sanciones/enviar-ajax', [DecanoCordinadorController::class, 'enviarResolucion'])
+     ->name('enviar_resolucion');
+    // Endpoint AJAX para enviar resolución
+    // Route::post('/sanciones/enviar-ajax', [DecanoCordinadorController::class, 'enviarResolucioniu'])->name('enviar_resolucion_ajax');
+// });
+ Route::get('/sanciones/generar-pdf-temp', [DecanoCordinadorController::class, 'generarPDFSancion'])
+         ->name('generar_pdf_sancion');
+
+    // Enviar resolución AJAX
+    // Route::post('/sanciones/enviar-ajax', [DecanoCordinadorController::class, 'enviarResolucionAjax'])
+    //      ->name('enviar_resolucion_ajax');
 });

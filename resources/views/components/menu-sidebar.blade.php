@@ -67,18 +67,6 @@
             <p>Actas de Compromiso</p>
         </a>
     </li>
-    <li class="nav-item {{ request()->routeIs('decano.abd') ? 'active' : '' }}">
-        <a href="{{ route('decano.abd') }}">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>Alertas Bajo Desempeño</p>
-        </a>
-    </li>
-    <li class="nav-item {{ request()->routeIs('decano.spm') ? 'active' : '' }}">
-        <a href="{{ route('decano.spm') }}">
-            <i class="fas fa-chart-line"></i>
-            <p>Seguimiento Plan de Mejora</p>
-        </a>
-    </li>
     <li class="nav-item {{ request()->routeIs('decano.psr') ? 'active' : '' }}">
         <a href="{{ route('decano.psr') }}">
             <i class="fas fa-user-times"></i>
