@@ -196,47 +196,14 @@ Frontend_backend_laravel_blade_evaluacion_docente/
    npm run dev
    ```
 
-9. **Establecer permisos adecuados** (solo en entornos Unix/Linux) 🔒:
-   ```bash
-   chmod -R 775 storage bootstrap/cache
-   ```
-
-10. **Ejecutar el servidor de desarrollo** 🖥️:
+9. **Ejecutar el servidor de desarrollo** (tambien puedes ingresar por **XAMPP**)🖥️:
     ```bash
     php artisan serve
     ```
 
-11. **Acceder a la aplicación** 🌐:
-    - Abrir el navegador y visitar: `http://localhost:8000`
-
-### Configuración alternativa con XAMPP/WAMP
-
-1. **Instalar el proyecto en la carpeta htdocs**:
-   - Clonar o descargar el repositorio en la carpeta htdocs (por defecto en `C:/xampp/htdocs/` o similar)
-
-2. **Seguir los pasos 2-8** de la configuración anterior.
-
-3. **Configurar un VirtualHost** (opcional pero recomendado):
-   - Editar el archivo `httpd-vhosts.conf` de Apache
-   - Añadir una configuración como esta:
-     ```apache
-     <VirtualHost *:80>
-         DocumentRoot "C:/xampp/htdocs/Frontend_backend_laravel_blade_evaluacion_docente/public"
-         ServerName evaluacion-docente.local
-         <Directory "C:/xampp/htdocs/Frontend_backend_laravel_blade_evaluacion_docente/public">
-             Options Indexes FollowSymLinks
-             AllowOverride All
-             Require all granted
-         </Directory>
-     </VirtualHost>
-     ```
-   - Añadir `127.0.0.1 evaluacion-docente.local` al archivo hosts
-
-4. **Reiniciar Apache**
-
-5. **Acceder a la aplicación** 🌐:
-   - A través de `http://evaluacion-docente.local` o
-   - A través de `http://localhost/Frontend_backend_laravel_blade_evaluacion_docente/public`
+10. **Acceder a la aplicación** 🌐:
+    - Abrir el navegador y visitar: `http://127.0.0.1:8000`
+    - o si tienes **XAMPP** ve a la ruta: `http://localhost/Evaluacion_Docente/public/`
 
 ---
 
