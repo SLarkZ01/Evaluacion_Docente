@@ -187,9 +187,7 @@ Frontend_backend_laravel_blade_evaluacion_docente/
 
 7. **Instalar la base de datos**:
 
-   **Ahora en phpMyAdmin importar la base de datos que se encuentra en**:
-
-  [Base de datos del proyecto](database/sql/evaluacion_docentes.sql)
+Ahora en phpMyAdmin importar la base de datos que se encuentra [aqui](database/sql/evaluacion_docentes.sql)
 
   ![phpMyAdmin](public/images/img_install/phpMyAdmin.png)
 
