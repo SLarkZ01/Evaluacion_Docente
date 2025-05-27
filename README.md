@@ -185,7 +185,7 @@ Frontend_backend_laravel_blade_evaluacion_docente/
    php artisan migrate:fresh --seed
    ```
 
-7. **Instalar la base de datos**:
+7. **Instalar la base de datos** 🗄️:
 
    - Ahora en phpMyAdmin importar la base de datos que se encuentra [aqui](database/sql/evaluacion_docentes.sql)
 
